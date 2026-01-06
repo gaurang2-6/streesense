@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="http://schemas.android.com/tools">
+    <color name="accent_blue">#4FACFE</color>
+    <color name="accent_cyan">#00F2FE</color>
+    <color name="accent_purple">#9B6DFF</color>
+    <color name="accent_purple_dark">#7B4FDF</color>
+    <color name="background_dark">#0D0D1A</color>
+    <color name="black">#000000</color>
+    <color name="card_background">#1A1A2E</color>
+    <color name="card_insight">#2D1B4E</color>
+    <color name="chart_bar_bg">#2A2A40</color>
+    <color name="chart_bar_high">#F87171</color>
+    <color name="chart_bar_low">#4ADE80</color>
+    <color name="chart_bar_medium">#FBBF24</color>
+    <color name="gradient_end">#764BA2</color>
+    <color name="gradient_start">#667EEA</color>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="stress_high">#F87171</color>
+    <color name="stress_low">#4ADE80</color>
+    <color name="stress_medium">#FBBF24</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="text_light">#C5C5D0</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#8E8E9A</color>
+    <color name="white">#FFFFFF</color>
+    <string name="accessibility_service_description">Monitors typing speed and error rates to detect stress patterns. No text content is stored.</string>
+    <string name="app_name">StressDetect</string>
+    <string name="notification_channel_description">Background stress monitoring</string>
+    <string name="notification_channel_name">Stress Detection</string>
+    <style name="Theme.StressDetection" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        
+        <item name="colorPrimary">@color/accent_purple</item>
+        <item name="colorPrimaryVariant">@color/accent_purple_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        
+        <item name="colorSecondary">@color/accent_cyan</item>
+        <item name="colorSecondaryVariant">@color/accent_blue</item>
+        <item name="colorOnSecondary">@color/black</item>
+        
+        <item name="android:colorBackground">@color/background_dark</item>
+        <item name="colorSurface">@color/card_background</item>
+        
+        <item name="android:statusBarColor">@color/background_dark</item>
+        <item name="android:navigationBarColor">@color/background_dark</item>
+        
+        <item name="android:windowLightStatusBar" ns1:targetApi="23">false</item>
+    </style>
+    <style name="Theme.StressDetection.Dialog" parent="Theme.MaterialComponents.Dialog.Alert">
+        <item name="colorPrimary">@color/accent_purple</item>
+        <item name="android:background">@color/card_background</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+    </style>
+</resources>

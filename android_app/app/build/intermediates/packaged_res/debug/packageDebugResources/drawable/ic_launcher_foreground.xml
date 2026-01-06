@@ -1,0 +1,21 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group android:scaleX="0.5"
+        android:scaleY="0.5"
+        android:translateX="27"
+        android:translateY="27">
+        <!-- Brain/stress detection icon -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M54,20C32.46,20 15,37.46 15,59C15,80.54 32.46,98 54,98C75.54,98 93,80.54 93,59C93,37.46 75.54,20 54,20ZM54,90C36.88,90 23,76.12 23,59C23,41.88 36.88,28 54,28C71.12,28 85,41.88 85,59C85,76.12 71.12,90 54,90Z"/>
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M54,35C40.75,35 30,45.75 30,59C30,72.25 40.75,83 54,83C67.25,83 78,72.25 78,59C78,45.75 67.25,35 54,35ZM54,75C45.16,75 38,67.84 38,59C38,50.16 45.16,43 54,43C62.84,43 70,50.16 70,59C70,67.84 62.84,75 54,75Z"/>
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M54,50C49.03,50 45,54.03 45,59C45,63.97 49.03,68 54,68C58.97,68 63,63.97 63,59C63,54.03 58.97,50 54,50Z"/>
+    </group>
+</vector>

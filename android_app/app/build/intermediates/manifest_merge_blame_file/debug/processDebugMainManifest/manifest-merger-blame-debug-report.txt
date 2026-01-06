@@ -1,0 +1,220 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.example.stressdetection"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="24"
+9        android:targetSdkVersion="34" />
+10
+11    <!-- Permissions for data collection -->
+12    <uses-permission android:name="android.permission.WAKE_LOCK" />
+12-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:6:5-68
+12-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:6:22-65
+13    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+13-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:7:5-77
+13-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:7:22-74
+14    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+14-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:8:5-89
+14-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:8:22-86
+15    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+15-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:9:5-77
+15-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:9:22-74
+16    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+16-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:10:5-87
+16-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:10:22-84
+17    <!-- App usage stats - requires special permission grant in settings -->
+18    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />
+18-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:12:5-113
+18-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:12:22-75
+19    <uses-permission android:name="android.permission.READ_CALL_LOG" />
+19-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:13:5-72
+19-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:13:22-69
+20    <uses-permission android:name="android.permission.READ_SMS" />
+20-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:14:5-67
+20-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:14:22-64
+21    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+21-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:15:5-81
+21-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:15:22-78
+22
+23    <permission
+23-->[androidx.core:core:1.12.0] C:\Users\gaura\.gradle\caches\8.10\transforms\cadee87e7a474229df9d2b5385571d0e\transformed\core-1.12.0\AndroidManifest.xml:22:5-24:47
+24        android:name="com.example.stressdetection.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+24-->[androidx.core:core:1.12.0] C:\Users\gaura\.gradle\caches\8.10\transforms\cadee87e7a474229df9d2b5385571d0e\transformed\core-1.12.0\AndroidManifest.xml:23:9-81
+25        android:protectionLevel="signature" />
+25-->[androidx.core:core:1.12.0] C:\Users\gaura\.gradle\caches\8.10\transforms\cadee87e7a474229df9d2b5385571d0e\transformed\core-1.12.0\AndroidManifest.xml:24:9-44
+26
+27    <uses-permission android:name="com.example.stressdetection.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+27-->[androidx.core:core:1.12.0] C:\Users\gaura\.gradle\caches\8.10\transforms\cadee87e7a474229df9d2b5385571d0e\transformed\core-1.12.0\AndroidManifest.xml:26:5-97
+27-->[androidx.core:core:1.12.0] C:\Users\gaura\.gradle\caches\8.10\transforms\cadee87e7a474229df9d2b5385571d0e\transformed\core-1.12.0\AndroidManifest.xml:26:22-94
+28
+29    <application
+29-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:17:5-72:19
+30        android:allowBackup="true"
+30-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:18:9-35
+31        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+31-->[androidx.core:core:1.12.0] C:\Users\gaura\.gradle\caches\8.10\transforms\cadee87e7a474229df9d2b5385571d0e\transformed\core-1.12.0\AndroidManifest.xml:28:18-86
+32        android:dataExtractionRules="@xml/data_extraction_rules"
+32-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:19:9-65
+33        android:debuggable="true"
+34        android:extractNativeLibs="false"
+35        android:fullBackupContent="@xml/backup_rules"
+35-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:20:9-54
+36        android:icon="@mipmap/ic_launcher"
+36-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:21:9-43
+37        android:label="@string/app_name"
+37-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:22:9-41
+38        android:roundIcon="@mipmap/ic_launcher_round"
+38-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:23:9-54
+39        android:supportsRtl="true"
+39-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:24:9-35
+40        android:theme="@style/Theme.StressDetection" >
+40-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:25:9-53
+41
+42        <!-- Onboarding Activity - Launcher -->
+43        <activity
+43-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:29:9-37:20
+44            android:name="com.example.stressdetection.OnboardingActivity"
+44-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:30:13-47
+45            android:exported="true"
+45-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:31:13-36
+46            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" >
+46-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:32:13-78
+47            <intent-filter>
+47-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:33:13-36:29
+48                <action android:name="android.intent.action.MAIN" />
+48-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:34:17-69
+48-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:34:25-66
+49
+50                <category android:name="android.intent.category.LAUNCHER" />
+50-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:35:17-77
+50-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:35:27-74
+51            </intent-filter>
+52        </activity>
+53
+54        <!-- Main Dashboard Activity -->
+55        <activity
+55-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:40:9-42:39
+56            android:name="com.example.stressdetection.MainActivity"
+56-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:41:13-41
+57            android:exported="true" />
+57-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:42:13-36
+58        <activity
+58-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:44:9-47:60
+59            android:name="com.example.stressdetection.SurveyActivity"
+59-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:45:13-43
+60            android:exported="false"
+60-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:46:13-37
+61            android:theme="@style/Theme.StressDetection" />
+61-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:47:13-57
+62
+63        <!-- Background Data Collection Service -->
+64        <service
+64-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:50:9-58:19
+65            android:name="com.example.stressdetection.DataCollectionService"
+65-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:51:13-50
+66            android:enabled="true"
+66-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:52:13-35
+67            android:exported="false"
+67-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:53:13-37
+68            android:foregroundServiceType="specialUse" >
+68-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:54:13-55
+69            <property
+69-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:55:13-57:67
+70                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+70-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:56:17-76
+71                android:value="stress_detection_data_collection" />
+71-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:57:17-65
+72        </service>
+73        <service
+73-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:60:9-70:19
+74            android:name="com.example.stressdetection.GlobalInputService"
+74-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:61:13-47
+75            android:exported="true"
+75-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:63:13-36
+76            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" >
+76-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:62:13-79
+77            <intent-filter>
+77-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:64:13-66:29
+78                <action android:name="android.accessibilityservice.AccessibilityService" />
+78-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:65:17-92
+78-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:65:25-89
+79            </intent-filter>
+80
+81            <meta-data
+81-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:67:13-69:72
+82                android:name="android.accessibilityservice"
+82-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:68:17-60
+83                android:resource="@xml/accessibility_service_config" />
+83-->D:\stree detection\android_app\app\src\main\AndroidManifest.xml:69:17-69
+84        </service>
+85
+86        <provider
+86-->[androidx.emoji2:emoji2:1.2.0] C:\Users\gaura\.gradle\caches\8.10\transforms\e0c692cd0d001b8fbd3fdd81626917a2\transformed\emoji2-1.2.0\AndroidManifest.xml:24:9-32:20
+87            android:name="androidx.startup.InitializationProvider"
+87-->[androidx.emoji2:emoji2:1.2.0] C:\Users\gaura\.gradle\caches\8.10\transforms\e0c692cd0d001b8fbd3fdd81626917a2\transformed\emoji2-1.2.0\AndroidManifest.xml:25:13-67
+88            android:authorities="com.example.stressdetection.androidx-startup"
+88-->[androidx.emoji2:emoji2:1.2.0] C:\Users\gaura\.gradle\caches\8.10\transforms\e0c692cd0d001b8fbd3fdd81626917a2\transformed\emoji2-1.2.0\AndroidManifest.xml:26:13-68
+89            android:exported="false" >
+89-->[androidx.emoji2:emoji2:1.2.0] C:\Users\gaura\.gradle\caches\8.10\transforms\e0c692cd0d001b8fbd3fdd81626917a2\transformed\emoji2-1.2.0\AndroidManifest.xml:27:13-37
+90            <meta-data
+90-->[androidx.emoji2:emoji2:1.2.0] C:\Users\gaura\.gradle\caches\8.10\transforms\e0c692cd0d001b8fbd3fdd81626917a2\transformed\emoji2-1.2.0\AndroidManifest.xml:29:13-31:52
+91                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+91-->[androidx.emoji2:emoji2:1.2.0] C:\Users\gaura\.gradle\caches\8.10\transforms\e0c692cd0d001b8fbd3fdd81626917a2\transformed\emoji2-1.2.0\AndroidManifest.xml:30:17-75
+92                android:value="androidx.startup" />
+92-->[androidx.emoji2:emoji2:1.2.0] C:\Users\gaura\.gradle\caches\8.10\transforms\e0c692cd0d001b8fbd3fdd81626917a2\transformed\emoji2-1.2.0\AndroidManifest.xml:31:17-49
+93            <meta-data
+93-->[androidx.lifecycle:lifecycle-process:2.6.1] C:\Users\gaura\.gradle\caches\8.10\transforms\11934383f75a8a4c833a002b37d65ecd\transformed\lifecycle-process-2.6.1\AndroidManifest.xml:29:13-31:52
+94                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+94-->[androidx.lifecycle:lifecycle-process:2.6.1] C:\Users\gaura\.gradle\caches\8.10\transforms\11934383f75a8a4c833a002b37d65ecd\transformed\lifecycle-process-2.6.1\AndroidManifest.xml:30:17-78
+95                android:value="androidx.startup" />
+95-->[androidx.lifecycle:lifecycle-process:2.6.1] C:\Users\gaura\.gradle\caches\8.10\transforms\11934383f75a8a4c833a002b37d65ecd\transformed\lifecycle-process-2.6.1\AndroidManifest.xml:31:17-49
+96            <meta-data
+96-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\gaura\.gradle\caches\8.10\transforms\ee8d46c1178c0c646fac4b7c58b067b7\transformed\profileinstaller-1.3.0\AndroidManifest.xml:29:13-31:52
+97                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+97-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\gaura\.gradle\caches\8.10\transforms\ee8d46c1178c0c646fac4b7c58b067b7\transformed\profileinstaller-1.3.0\AndroidManifest.xml:30:17-85
+98                android:value="androidx.startup" />
+98-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\gaura\.gradle\caches\8.10\transforms\ee8d46c1178c0c646fac4b7c58b067b7\transformed\profileinstaller-1.3.0\AndroidManifest.xml:31:17-49
+99        </provider>
+100
+101        <receiver
+101-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\gaura\.gradle\caches\8.10\transforms\ee8d46c1178c0c646fac4b7c58b067b7\transformed\profileinstaller-1.3.0\AndroidManifest.xml:34:9-52:20
+102            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+102-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\gaura\.gradle\caches\8.10\transforms\ee8d46c1178c0c646fac4b7c58b067b7\transformed\profileinstaller-1.3.0\AndroidManifest.xml:35:13-76
+103            android:directBootAware="false"
+103-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\gaura\.gradle\caches\8.10\transforms\ee8d46c1178c0c646fac4b7c58b067b7\transformed\profileinstaller-1.3.0\AndroidManifest.xml:36:13-44
+104            android:enabled="true"
+104-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\gaura\.gradle\caches\8.10\transforms\ee8d46c1178c0c646fac4b7c58b067b7\transformed\profileinstaller-1.3.0\AndroidManifest.xml:37:13-35
+105            android:exported="true"
+105-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\gaura\.gradle\caches\8.10\transforms\ee8d46c1178c0c646fac4b7c58b067b7\transformed\profileinstaller-1.3.0\AndroidManifest.xml:38:13-36
+106            android:permission="android.permission.DUMP" >
+106-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\gaura\.gradle\caches\8.10\transforms\ee8d46c1178c0c646fac4b7c58b067b7\transformed\profileinstaller-1.3.0\AndroidManifest.xml:39:13-57
+107            <intent-filter>
+107-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\gaura\.gradle\caches\8.10\transforms\ee8d46c1178c0c646fac4b7c58b067b7\transformed\profileinstaller-1.3.0\AndroidManifest.xml:40:13-42:29
+108                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+108-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\gaura\.gradle\caches\8.10\transforms\ee8d46c1178c0c646fac4b7c58b067b7\transformed\profileinstaller-1.3.0\AndroidManifest.xml:41:17-91
+108-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\gaura\.gradle\caches\8.10\transforms\ee8d46c1178c0c646fac4b7c58b067b7\transformed\profileinstaller-1.3.0\AndroidManifest.xml:41:25-88
+109            </intent-filter>
+110            <intent-filter>
+110-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\gaura\.gradle\caches\8.10\transforms\ee8d46c1178c0c646fac4b7c58b067b7\transformed\profileinstaller-1.3.0\AndroidManifest.xml:43:13-45:29
+111                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+111-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\gaura\.gradle\caches\8.10\transforms\ee8d46c1178c0c646fac4b7c58b067b7\transformed\profileinstaller-1.3.0\AndroidManifest.xml:44:17-85
+111-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\gaura\.gradle\caches\8.10\transforms\ee8d46c1178c0c646fac4b7c58b067b7\transformed\profileinstaller-1.3.0\AndroidManifest.xml:44:25-82
+112            </intent-filter>
+113            <intent-filter>
+113-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\gaura\.gradle\caches\8.10\transforms\ee8d46c1178c0c646fac4b7c58b067b7\transformed\profileinstaller-1.3.0\AndroidManifest.xml:46:13-48:29
+114                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+114-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\gaura\.gradle\caches\8.10\transforms\ee8d46c1178c0c646fac4b7c58b067b7\transformed\profileinstaller-1.3.0\AndroidManifest.xml:47:17-88
+114-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\gaura\.gradle\caches\8.10\transforms\ee8d46c1178c0c646fac4b7c58b067b7\transformed\profileinstaller-1.3.0\AndroidManifest.xml:47:25-85
+115            </intent-filter>
+116            <intent-filter>
+116-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\gaura\.gradle\caches\8.10\transforms\ee8d46c1178c0c646fac4b7c58b067b7\transformed\profileinstaller-1.3.0\AndroidManifest.xml:49:13-51:29
+117                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+117-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\gaura\.gradle\caches\8.10\transforms\ee8d46c1178c0c646fac4b7c58b067b7\transformed\profileinstaller-1.3.0\AndroidManifest.xml:50:17-95
+117-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\gaura\.gradle\caches\8.10\transforms\ee8d46c1178c0c646fac4b7c58b067b7\transformed\profileinstaller-1.3.0\AndroidManifest.xml:50:25-92
+118            </intent-filter>
+119        </receiver>
+120    </application>
+121
+122</manifest>

@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">StressDetect</string>
+    <string name="notification_channel_name">Stress Detection</string>
+    <string name="notification_channel_description">Background stress monitoring</string>
+    <string name="accessibility_service_description">Monitors typing speed and error rates to detect stress patterns. No text content is stored.</string>
+</resources>
