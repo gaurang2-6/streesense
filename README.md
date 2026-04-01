@@ -1,4 +1,4 @@
-# 🧠 StressDetect - Interaction-Based Stress Detection App
+# StressDetect - Interaction-Based Stress Detection App
 
 A privacy-first Android application that detects user stress levels by analyzing behavioral interaction patterns such as typing behavior, touch pressure/speed, and app usage habits.
 
@@ -9,7 +9,7 @@ A privacy-first Android application that detects user stress levels by analyzing
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Features](#-features)
 - [Architecture](#-architecture)
@@ -22,7 +22,7 @@ A privacy-first Android application that detects user stress levels by analyzing
 
 ---
 
-## ✨ Features
+##  Features
 
 ### Behavioral Analysis
 - **Typing Behavior Detection**: Monitors typing speed, backspace frequency, key hold duration, and error rates
@@ -41,7 +41,7 @@ A privacy-first Android application that detects user stress levels by analyzing
 
 ---
 
-## 🏗 Architecture
+##  Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -73,7 +73,7 @@ A privacy-first Android application that detects user stress levels by analyzing
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 stree detection/
@@ -134,7 +134,7 @@ stree detection/
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 
@@ -167,7 +167,7 @@ python convert_to_tflite.py
 
 ---
 
-## 🤖 Machine Learning Model
+##  Machine Learning Model
 
 ### Features Used
 
@@ -195,7 +195,7 @@ python convert_to_tflite.py
 
 ---
 
-## 🔒 Privacy & Ethics
+##  Privacy & Ethics
 
 ### Data Collection Principles
 
@@ -215,7 +215,7 @@ python convert_to_tflite.py
 
 ---
 
-## 📱 Screenshots
+##  Screenshots
 
 ### Dashboard
 - Large stress score display with circular ring indicator
@@ -230,7 +230,7 @@ python convert_to_tflite.py
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 | Component | Technology |
 |-----------|------------|
@@ -244,13 +244,13 @@ python convert_to_tflite.py
 
 ---
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License.
 
 ---
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - TensorFlow Lite team for on-device ML capabilities
 - Material Design guidelines for modern UI patterns
@@ -258,4 +258,4 @@ This project is licensed under the MIT License.
 
 ---
 
-**Built with ❤️ for mental wellness**
+**Built with for mental wellness**
