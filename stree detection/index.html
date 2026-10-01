@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Stress Sense — Apple Design System Mockup</title>
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        appleBlue: "#0066cc",
+                        appleBlueFocus: "#0071e3",
+                        appleBlueDark: "#2997ff",
+                        appleInk: "#1d1d1f",
+                        appleInkMuted: "#7a7a7a",
+                        appleParchment: "#f5f5f7",
+                        applePearl: "#fafafc",
+                        appleTile1: "#272729",
+                        appleTile2: "#2a2a2c",
+                        appleHairline: "#e0e0e0"
+                    },
+                    fontFamily: {
+                        display: ["SF Pro Display", "-apple-system", "BlinkMacSystemFont", "system-ui", "sans-serif"],
+                        text: ["SF Pro Text", "-apple-system", "BlinkMacSystemFont", "system-ui", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <style>
+        body {
+            background-color: #ffffff;
+            color: #1d1d1f;
+            font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            letter-spacing: -0.022em;
+            overflow-x: hidden;
+        }
+        
+        /* Apple Display Typographic Cadence */
+        .apple-hero-title {
+            font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 56px;
+            font-weight: 600;
+            line-height: 1.07;
+            letter-spacing: -0.025em;
+        }
+        .apple-tile-title {
+            font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 40px;
+            font-weight: 600;
+            line-height: 1.1;
+            letter-spacing: -0.015em;
+        }
+        .apple-tagline {
+            font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 21px;
+            font-weight: 600;
+            line-height: 1.19;
+            letter-spacing: 0.011em;
+        }
+
+        /* Apple Active Press State */
+        .btn-active-scale:active {
+            transform: scale(0.95);
+        }
+
+        /* Minimal scrollbar */
+        .scroll-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scroll-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-start pb-24 bg-appleParchment">
+
+    <!-- Global Nav (global-nav) -->
+    <header class="fixed top-0 w-full bg-[#000000]/90 text-white h-[44px] flex justify-between items-center px-6 z-50 shadow-none border-b border-white/10">
+        <div class="flex items-center gap-1.5">
+            <!-- Mini Apple-like Logo -->
+            <span class="material-symbols-outlined text-white text-md">spa</span>
+            <span class="font-display font-semibold text-xs tracking-tight uppercase">Stress Sense</span>
+        </div>
+        <div class="flex items-center gap-3 text-xs text-[#cccccc] font-normal">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            <span class="text-[10px] tracking-wider uppercase font-semibold text-emerald-400">On-Device inference</span>
+        </div>
+    </header>
+
+    <!-- Sub-Nav Frosted (sub-nav-frosted) -->
+    <div class="fixed top-[44px] w-full bg-applePearl/80 backdrop-blur-md h-[52px] border-b border-appleHairline flex justify-between items-center px-6 z-40">
+        <div class="font-display font-semibold text-base text-appleInk">Overview</div>
+        <div class="flex items-center gap-4 text-xs font-normal">
+            <button onclick="switchTab(0)" class="text-appleInk hover:text-appleBlue font-medium transition-colors">Dashboard</button>
+            <button onclick="switchTab(1)" class="text-appleInk hover:text-appleBlue font-medium transition-colors">Simulator</button>
+            <button onclick="switchTab(2)" class="bg-appleBlue hover:bg-appleBlueFocus text-white px-3 py-1.5 rounded-full font-medium transition-all btn-active-scale text-[11px]">Help Support</button>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="w-full max-w-lg px-6 pt-[120px] space-y-8 flex-grow">
+
+        <!-- ==================== TAB 0: DASHBOARD (ALTERNATING LIGHT/DARK CANVASES) ==================== -->
+        <div id="tabDashboard" class="space-y-8">
+            
+            <!-- Hero Canvas: White Canvas Hero Tile -->
+            <section class="bg-white rounded-[18px] border border-appleHairline p-8 flex flex-col items-center text-center space-y-6 relative overflow-hidden">
+                <!-- One Signature Shadow under product/metric circle -->
+                <div class="relative w-56 h-56 flex flex-col items-center justify-center bg-applePearl rounded-full border border-appleHairline" style="box-shadow: rgba(0, 0, 0, 0.08) 0px 10px 32px 0px;">
+                    <!-- Minimalist Circular Progress -->
+                    <svg class="absolute inset-0 w-full h-full transform -rotate-90">
+                        <circle cx="50%" cy="50%" fill="transparent" r="46%" stroke="rgba(0,0,0,0.02)" stroke-width="4"></circle>
+                        <circle id="stressRing" cx="50%" cy="50%" fill="transparent" r="46%" stroke="#0066cc" stroke-dasharray="515" stroke-dashoffset="180" stroke-linecap="round" stroke-width="4" class="transition-all duration-500"></circle>
+                    </svg>
+                    <div class="flex flex-col items-center z-10">
+                        <span id="txtStressScore" class="apple-hero-title text-appleBlue">42</span>
+                        <span id="txtStressLabel" class="font-display text-xs font-semibold tracking-wider text-appleInk uppercase mt-1">Moderate</span>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <h3 id="txtStressTagline" class="apple-tagline text-appleInk">System Load Balanced</h3>
+                    <p id="txtStressDesc" class="text-sm text-appleInk/70 max-w-[320px] mx-auto leading-relaxed">
+                        Behavioral signals, touch speed, and daily steps indicate normal coping levels.
+                    </p>
+                </div>
+
+                <div class="flex gap-3 justify-center pt-2">
+                    <button onclick="switchTab(1)" class="bg-appleBlue hover:bg-appleBlueFocus text-white text-[13px] font-semibold px-5 py-2.5 rounded-full btn-active-scale transition-all">
+                        Adjust Metrics
+                    </button>
+                    <button onclick="switchTab(2)" class="border border-appleBlue text-appleBlue hover:bg-appleBlue/5 text-[13px] font-semibold px-5 py-2.5 rounded-full btn-active-scale transition-all">
+                        Crisis Info
+                    </button>
+                </div>
+            </section>
+
+            <!-- Bento Card Grid: White Card Tiles with Hairline Borders -->
+            <section class="grid grid-cols-2 gap-4">
+                
+                <!-- Card 1: Typing Speed -->
+                <div class="bg-white rounded-[18px] border border-appleHairline p-5 flex flex-col justify-between h-40">
+                    <div class="flex justify-between items-center text-appleInk/50">
+                        <span class="material-symbols-outlined text-md">keyboard</span>
+                        <span class="text-[10px] font-semibold uppercase tracking-wider">Typing</span>
+                    </div>
+                    <div class="space-y-1">
+                        <div id="cardTypingSpeed" class="text-3xl font-semibold tracking-tight text-appleInk">5.2</div>
+                        <div class="text-[10px] text-appleInkMuted font-medium uppercase tracking-wider">chars/sec average</div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Fidget Score -->
+                <div class="bg-white rounded-[18px] border border-appleHairline p-5 flex flex-col justify-between h-40">
+                    <div class="flex justify-between items-center text-appleInk/50">
+                        <span class="material-symbols-outlined text-md">sensors</span>
+                        <span class="text-[10px] font-semibold uppercase tracking-wider">Movement</span>
+                    </div>
+                    <div class="space-y-1">
+                        <div id="cardMovement" class="text-3xl font-semibold tracking-tight text-appleInk">0.78</div>
+                        <div class="text-[10px] text-appleInkMuted font-medium uppercase tracking-wider">Fidget score</div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Social App Ratio -->
+                <div class="bg-white rounded-[18px] border border-appleHairline p-5 flex flex-col justify-between h-40">
+                    <div class="flex justify-between items-center text-appleInk/50">
+                        <span class="material-symbols-outlined text-md">social_leaderboard</span>
+                        <span class="text-[10px] font-semibold uppercase tracking-wider">Social Ratio</span>
+                    </div>
+                    <div class="space-y-1">
+                        <div id="cardSocialRatio" class="text-3xl font-semibold tracking-tight text-appleInk">41%</div>
+                        <div class="text-[10px] text-appleInkMuted font-medium uppercase tracking-wider">screen time share</div>
+                    </div>
+                </div>
+
+                <!-- Card 4: Daily Steps -->
+                <div class="bg-white rounded-[18px] border border-appleHairline p-5 flex flex-col justify-between h-40">
+                    <div class="flex justify-between items-center text-appleInk/50">
+                        <span class="material-symbols-outlined text-md">directions_walk</span>
+                        <span class="text-[10px] font-semibold uppercase tracking-wider">Physical</span>
+                    </div>
+                    <div class="space-y-1">
+                        <div id="cardSteps" class="text-3xl font-semibold tracking-tight text-appleInk">5,600</div>
+                        <div class="text-[10px] text-appleInkMuted font-medium uppercase tracking-wider">steps today</div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Insight Section: Apple Dark Canvas Tile -->
+            <section class="bg-appleTile1 text-white rounded-[18px] p-6 relative overflow-hidden border border-white/5">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[#2997ff]">
+                        <span id="insightIcon" class="material-symbols-outlined">info</span>
+                    </div>
+                    <div class="flex-1 space-y-2">
+                        <h3 id="insightTitle" class="text-md font-semibold text-[#2997ff]">Standard Coping Behavior</h3>
+                        <p id="insightDesc" class="text-sm text-[#cccccc] leading-relaxed">
+                            Your device metrics align with steady typing and stable daily physical activity. No action recommended.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Legal Disclaimer Banner -->
+            <section class="text-center px-4 pt-4">
+                <p class="text-[10px] text-appleInkMuted leading-normal">
+                    Designed by Stress Sense. For evaluation purposes following Apple design system analysis. Action Blue is the interactive anchor. Product renders include signature shadow detail.
+                </p>
+            </section>
+        </div>
+
+        <!-- ==================== TAB 1: SIMULATOR (SLIDERS & CALIBRATION) ==================== -->
+        <div id="tabMetrics" class="space-y-6 hidden">
+            
+            <div class="flex justify-between items-baseline">
+                <h2 class="apple-tile-title text-appleInk">Simulator</h2>
+                <button onclick="resetSliders()" class="text-xs text-appleBlue font-semibold hover:underline">
+                    Reset Defaults
+                </button>
+            </div>
+
+            <!-- Bento Sliders Panel -->
+            <div class="bg-white rounded-[18px] border border-appleHairline p-6 space-y-6">
+                
+                <!-- Slider Item 1 -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs font-semibold text-appleInk">
+                        <span>Average Typing Speed</span>
+                        <span id="val_typing_speed_avg" class="text-appleBlue">5.8 chars/s</span>
+                    </div>
+                    <input type="range" id="sl_typing_speed_avg" min="0.5" max="12.0" step="0.1" value="5.8" oninput="updateInferenceSim()" class="w-full">
+                </div>
+
+                <!-- Slider Item 2 -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs font-semibold text-appleInk">
+                        <span>Backspace correction rate</span>
+                        <span id="val_backspace_rate" class="text-appleBlue">16%</span>
+                    </div>
+                    <input type="range" id="sl_backspace_rate" min="0" max="50" step="1" value="16" oninput="updateInferenceSim()" class="w-full">
+                </div>
+
+                <!-- Slider Item 3 -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs font-semibold text-appleInk">
+                        <span>Fidget/Movement Variance</span>
+                        <span id="val_movement_variance" class="text-appleBlue">0.78</span>
+                    </div>
+                    <input type="range" id="sl_movement_variance" min="0.0" max="3.0" step="0.1" value="0.78" oninput="updateInferenceSim()" class="w-full">
+                </div>
+
+                <!-- Slider Item 4 -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs font-semibold text-appleInk">
+                        <span>Daily Steps</span>
+                        <span id="val_step_count_daily" class="text-appleBlue">5,600 steps</span>
+                    </div>
+                    <input type="range" id="sl_step_count_daily" min="500" max="15000" step="500" value="5600" oninput="updateInferenceSim()" class="w-full">
+                </div>
+
+                <!-- Slider Item 5 -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs font-semibold text-appleInk">
+                        <span>App Switch Rate</span>
+                        <span id="val_app_switch_count_per_hour" class="text-appleBlue">12 / hr</span>
+                    </div>
+                    <input type="range" id="sl_app_switch_count_per_hour" min="0" max="40" step="1" value="12" oninput="updateInferenceSim()" class="w-full">
+                </div>
+
+                <!-- Slider Item 6 -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs font-semibold text-appleInk">
+                        <span>Social App Time Share</span>
+                        <span id="val_social_app_time_ratio" class="text-appleBlue">41%</span>
+                    </div>
+                    <input type="range" id="sl_social_app_time_ratio" min="0" max="80" step="1" value="41" oninput="updateInferenceSim()" class="w-full">
+                </div>
+
+                <!-- Slider Item 7 -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs font-semibold text-appleInk">
+                        <span>Late Night Screen Usage</span>
+                        <span id="val_late_night_usage_minutes" class="text-appleBlue">25 mins</span>
+                    </div>
+                    <input type="range" id="sl_late_night_usage_minutes" min="0" max="120" step="5" value="25" oninput="updateInferenceSim()" class="w-full">
+                </div>
+
+                <!-- Slider Item 8 -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs font-semibold text-appleInk">
+                        <span>Social Baseline Delta (z-score)</span>
+                        <span id="val_call_sms_frequency_delta" class="text-appleBlue">-0.70</span>
+                    </div>
+                    <input type="range" id="sl_call_sms_frequency_delta" min="-3.0" max="3.0" step="0.1" value="-0.7" oninput="updateInferenceSim()" class="w-full">
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB 2: CRISIS HELPLINES (PEARL BUTTON STYLING) ==================== -->
+        <div id="tabResources" class="space-y-6 hidden">
+            <h2 class="apple-tile-title text-appleInk">Support</h2>
+
+            <!-- Support List -->
+            <div class="bg-white rounded-[18px] border border-appleHairline p-6 space-y-4">
+                <div class="flex items-center gap-3 pb-2 border-b border-appleHairline">
+                    <span class="text-2xl">🚨</span>
+                    <div>
+                        <h3 class="font-semibold text-appleInk">24/7 Helplines</h3>
+                        <p class="text-xs text-appleInkMuted">Confidential, free, and always active.</p>
+                    </div>
+                </div>
+                
+                <div class="divide-y divide-appleParchment space-y-3 pt-2">
+                    <div class="pt-2 flex justify-between items-center">
+                        <div>
+                            <div class="text-sm font-semibold text-appleInk">National Suicide Prevention</div>
+                            <div class="text-xs text-appleInkMuted">Call or Text 988</div>
+                        </div>
+                        <a href="tel:988" class="bg-applePearl hover:bg-[#eae1dd]/10 text-appleBlue border border-appleHairline hover:border-appleBlue font-semibold px-4 py-1.5 rounded-full text-xs transition-all btn-active-scale">
+                            Call 988
+                        </a>
+                    </div>
+                    
+                    <div class="pt-3 flex justify-between items-center">
+                        <div>
+                            <div class="text-sm font-semibold text-appleInk">Crisis Text Line</div>
+                            <div class="text-xs text-appleInkMuted">Text HOME to 741741</div>
+                        </div>
+                        <a href="sms:741741?body=HOME" class="bg-applePearl hover:bg-[#eae1dd]/10 text-appleBlue border border-appleHairline hover:border-appleBlue font-semibold px-4 py-1.5 rounded-full text-xs transition-all btn-active-scale">
+                            Text HOME
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Instant Relief Suggestions -->
+            <div class="bg-white rounded-[18px] border border-appleHairline p-6 space-y-3">
+                <h3 class="font-semibold text-appleInk">Daily Stress Relief Advice</h3>
+                <ul class="text-xs text-appleInk/80 space-y-2 list-disc pl-4">
+                    <li><strong>4-7-8 Deep Breathing</strong>: Inhale 4s, hold 7s, exhale 8s. Helps trigger parasympathetic calm.</li>
+                    <li><strong>Cognitive Break</strong>: Set aside device screens for 15 minutes. Take a visual timeout.</li>
+                    <li><strong>Grounding Activity</strong>: Focus on 3 textures around you.</li>
+                </ul>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Bottom Navigation Bar (Frosted Capsule) -->
+    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] md:w-[400px] rounded-full bg-white/80 backdrop-blur-md border border-appleHairline shadow-lg flex justify-around items-center h-16 px-4 z-50">
+        <button id="navDashboard" onclick="switchTab(0)" class="nav-btn text-appleBlue bg-appleBlue/10 rounded-full p-3 active:scale-95 transition-all">
+            <span class="material-symbols-outlined">monitor_heart</span>
+        </button>
+        <button id="navMetrics" onclick="switchTab(1)" class="nav-btn text-appleInkMuted p-3 hover:text-appleBlue active:scale-95 transition-all">
+            <span class="material-symbols-outlined">tune</span>
+        </button>
+        <button id="navResources" onclick="switchTab(2)" class="nav-btn text-appleInkMuted p-3 hover:text-appleBlue active:scale-95 transition-all">
+            <span class="material-symbols-outlined">spa</span>
+        </button>
+    </nav>
+
+    <script>
+        // Tab routing logic
+        function switchTab(tabIndex) {
+            const tabs = [document.getElementById('tabDashboard'), document.getElementById('tabMetrics'), document.getElementById('tabResources')];
+            const navButtons = [document.getElementById('navDashboard'), document.getElementById('navMetrics'), document.getElementById('navResources')];
+
+            tabs.forEach((tab, index) => {
+                if (index === tabIndex) {
+                    tab.classList.remove('hidden');
+                } else {
+                    tab.classList.add('hidden');
+                }
+            });
+
+            navButtons.forEach((btn, index) => {
+                if (index === tabIndex) {
+                    btn.className = "nav-btn text-appleBlue bg-appleBlue/10 rounded-full p-3 active:scale-95 transition-all";
+                } else {
+                    btn.className = "nav-btn text-appleInkMuted p-3 hover:text-appleBlue active:scale-95 transition-all";
+                }
+            });
+        }
+
+        // Statistical constants matching training statistics
+        const means = {
+            typing_speed_avg: 5.877251,
+            backspace_rate: 0.165610,
+            app_switch_count_per_hour: 12.307791,
+            screen_unlock_count: 5.647415,
+            total_screen_time: 28.831104,
+            social_app_time_ratio: 0.415505,
+            late_night_usage_minutes: 25.407377,
+            movement_variance: 0.787518,
+            step_count_daily: 5.685288,
+            call_sms_frequency_delta: -0.700154
+        };
+
+        const stds = {
+            typing_speed_avg: 1.353449,
+            backspace_rate: 0.078197,
+            app_switch_count_per_hour: 6.332695,
+            screen_unlock_count: 2.653187,
+            total_screen_time: 9.611197,
+            social_app_time_ratio: 0.137383,
+            late_night_usage_minutes: 20.641841,
+            movement_variance: 0.448491,
+            step_count_daily: 2.026003,
+            call_sms_frequency_delta: 0.654284
+        };
+
+        const weights = {
+            typing_speed_avg: 0.08,
+            backspace_rate: 0.12,
+            app_switch_count_per_hour: 0.10,
+            movement_variance: 0.10,
+            step_count_daily: -0.08,
+            call_sms_frequency_delta: -0.08
+        };
+
+        function resetSliders() {
+            document.getElementById('sl_typing_speed_avg').value = 5.8;
+            document.getElementById('sl_backspace_rate').value = 16;
+            document.getElementById('sl_movement_variance').value = 0.78;
+            document.getElementById('sl_step_count_daily').value = 5600;
+            document.getElementById('sl_app_switch_count_per_hour').value = 12;
+            document.getElementById('sl_social_app_time_ratio').value = 41;
+            document.getElementById('sl_late_night_usage_minutes').value = 25;
+            document.getElementById('sl_call_sms_frequency_delta').value = -0.7;
+
+            updateInferenceSim();
+        }
+
+        // Live inference matching the model fallback algorithm
+        function updateInferenceSim() {
+            const typing_speed_avg = parseFloat(document.getElementById('sl_typing_speed_avg').value);
+            const backspace_rate = parseFloat(document.getElementById('sl_backspace_rate').value) / 100.0;
+            const movement_variance = parseFloat(document.getElementById('sl_movement_variance').value);
+            const steps_raw = parseFloat(document.getElementById('sl_step_count_daily').value);
+            const step_count_daily = steps_raw / 1000.0;
+            const app_switch_count_per_hour = parseFloat(document.getElementById('sl_app_switch_count_per_hour').value);
+            const social_app_time_ratio = parseFloat(document.getElementById('sl_social_app_time_ratio').value) / 100.0;
+            const late_night_usage_minutes = parseFloat(document.getElementById('sl_late_night_usage_minutes').value);
+            const call_sms_frequency_delta = parseFloat(document.getElementById('sl_call_sms_frequency_delta').value);
+
+            // Update simulator text display labels
+            document.getElementById('val_typing_speed_avg').innerText = typing_speed_avg.toFixed(1) + " chars/s";
+            document.getElementById('val_backspace_rate').innerText = (backspace_rate * 100).toFixed(0) + "%";
+            document.getElementById('val_movement_variance').innerText = movement_variance.toFixed(2);
+            document.getElementById('val_step_count_daily').innerText = steps_raw.toLocaleString() + " steps";
+            document.getElementById('val_app_switch_count_per_hour').innerText = app_switch_count_per_hour + " / hr";
+            document.getElementById('val_social_app_time_ratio').innerText = (social_app_time_ratio * 100).toFixed(0) + "%";
+            document.getElementById('val_late_night_usage_minutes').innerText = late_night_usage_minutes + " mins";
+            document.getElementById('val_call_sms_frequency_delta').innerText = call_sms_frequency_delta.toFixed(2);
+
+            // Update Dashboard cards
+            document.getElementById('cardTypingSpeed').innerText = typing_speed_avg.toFixed(1);
+            document.getElementById('cardMovement').innerText = movement_variance.toFixed(2);
+            document.getElementById('cardSocialRatio').innerText = (social_app_time_ratio * 100).toFixed(0) + "%";
+            document.getElementById('cardSteps').innerText = steps_raw.toLocaleString();
+
+            // Run z-score normalization
+            const features = {
+                typing_speed_avg: (typing_speed_avg - means.typing_speed_avg) / stds.typing_speed_avg,
+                backspace_rate: (backspace_rate - means.backspace_rate) / stds.backspace_rate,
+                movement_variance: (movement_variance - means.movement_variance) / stds.movement_variance,
+                step_count_daily: (step_count_daily - means.step_count_daily) / stds.step_count_daily,
+                app_switch_count_per_hour: (app_switch_count_per_hour - means.app_switch_count_per_hour) / stds.app_switch_count_per_hour,
+                call_sms_frequency_delta: (call_sms_frequency_delta - means.call_sms_frequency_delta) / stds.call_sms_frequency_delta
+            };
+
+            // Estimate Stress Score
+            let rawScore = 0.4;
+            for (let k in weights) {
+                rawScore += features[k] * weights[k];
+            }
+            rawScore = Math.max(0.05, Math.min(0.95, rawScore));
+            const stressScore = Math.round(rawScore * 100);
+
+            // Determine class, text color, status labels, and details
+            let label = "Low";
+            let themeColor = "#0066cc"; // Action Blue
+            let tagline = "System Load Balanced";
+            let desc = "Behavioral signals, touch speed, and daily steps indicate normal coping levels.";
+            let insightTitle = "Standard Coping Behavior";
+            let insightDesc = "Your device metrics align with steady typing and stable daily physical activity. No action recommended.";
+            let insightIcon = "check_circle";
+
+            if (stressScore > 35 && stressScore <= 65) {
+                label = "Moderate";
+                themeColor = "#bf5af2"; // Apple Purple
+                tagline = "Elevated Stress Signals";
+                desc = "Your physical interaction metrics show minor restlessness. Hydration and a 2-minute pause are recommended.";
+                insightTitle = "Compulsive Checking Observed";
+                insightDesc = "A higher frequency of app switching and screen checks was noticed. Consider standard grounding.";
+                insightIcon = "info";
+            } else if (stressScore > 65) {
+                label = "High";
+                themeColor = "#ff453a"; // Apple Coral Red
+                tagline = "High Cognitive Burden";
+                desc = "Erratic typing speed, elevated backspace corrections, and low steps suggest a potential overload state.";
+                insightTitle = "Social Isolation Detected";
+                insightDesc = "A decrease in incoming/outgoing social frequency combined with low physical movement was observed.";
+                insightIcon = "warning";
+            }
+
+            // Update UI elements
+            document.getElementById('txtStressScore').innerText = stressScore;
+            document.getElementById('txtStressScore').style.color = themeColor;
+            
+            document.getElementById('txtStressLabel').innerText = label;
+            document.getElementById('txtStressLabel').style.color = themeColor;
+            
+            document.getElementById('txtStressTagline').innerText = tagline;
+            document.getElementById('txtStressDesc').innerText = desc;
+
+            // Ring progress (offset: 515 is 0%, 0 is 100%)
+            const ring = document.getElementById('stressRing');
+            const offset = 515 - (515 * (stressScore / 100.0));
+            ring.setAttribute('stroke-dashoffset', offset);
+            ring.setAttribute('stroke', themeColor);
+
+            // Update Insight banner
+            document.getElementById('insightTitle').innerText = insightTitle;
+            document.getElementById('insightTitle').style.color = themeColor;
+            document.getElementById('insightDesc').innerText = insightDesc;
+            document.getElementById('insightIcon').innerText = insightIcon;
+            document.getElementById('insightIcon').style.color = themeColor;
+        }
+
+        window.addEventListener('load', () => {
+            updateInferenceSim();
+        });
+    </script>
+</body>
+</html>

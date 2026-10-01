@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Launcher icon foreground — a stylized pulse / heartbeat line
+  representing the PPG heart-rate signal at the core of StressSense.
+  Drawn in the soft-black brand color on a transparent layer.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Safe-zone centered group; adaptive icon clips at ~72dp diameter -->
+    <group
+        android:scaleX="0.55"
+        android:scaleY="0.55"
+        android:translateX="24"
+        android:translateY="24">
+
+        <!-- Pulse / heartbeat trace -->
+        <path
+            android:pathData="M6,54 L30,54 L38,30 L48,78 L58,42 L66,54 L102,54"
+            android:strokeWidth="6"
+            android:strokeColor="#FF2D3142"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+    </group>
+</vector>

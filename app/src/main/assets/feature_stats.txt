@@ -1,0 +1,13 @@
+n_features=11
+n_classes=3
+typing_speed_avg=5.877251,1.353449
+typing_speed_variance=1.364364,0.734844
+backspace_rate=0.165610,0.078197
+app_switch_count_per_hour=12.307791,6.332695
+screen_unlock_count=5.647415,2.653187
+total_screen_time=28.831104,9.611197
+social_app_time_ratio=0.415505,0.137383
+late_night_usage_minutes=25.407377,20.641841
+movement_variance=0.787518,0.448491
+step_count_daily=5.685288,2.026003
+call_sms_frequency_delta=-0.700154,0.654284

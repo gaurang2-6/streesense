@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">StressSense</string>
+    <string name="accessibility_service_description">Detects typing and touch patterns to measure stress. No text content is ever read or stored — only timing and counts.</string>
+</resources>

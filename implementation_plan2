@@ -1,0 +1,99 @@
+# Implementation Plan - Merge StressSense & StressDetect
+
+Merge the behavioral interaction tracking features and survey options from the StressDetect application into the Compose-based StressSense application, adding a PSS-10 Questionnaire screen, enhanced history graphs with scan-type filtering, a local Privacy Policy screen, and compiling the final Android APK.
+
+## User Review Required
+
+> [!IMPORTANT]
+> **PSS-10 Questionnaire Scoring & Database Mapping:** 
+> The PSS-10 survey is a 10-question test scored on a 0–40 scale. To merge this into the existing `StressScan` database schema (which uses a 0–100 scale for `finalScore` to drive all home metrics/graphs), we propose:
+> 1. Scaling the raw PSS-10 score to a 0–100 scale in the database via `(rawScore * 2.5).toInt()`.
+> 2. Setting the `scanType` field to `"QUESTIONNAIRE"`.
+> 3. Displaying both the raw PSS score (e.g., `Score: 28/40`) and the scaled stress level in the history item details.
+
+> [!NOTE]
+> **Compilation Environment:**
+> We have verified that the workspace includes a local JDK 17 (`.tools/jdk-17`) and Android SDK (`.tools/android-sdk`). We will configure the gradle build to use this local JDK, compile the application, and package it as a debug APK.
+
+## Proposed Changes
+
+### Navigation & Models
+
+#### [MODIFY] [Screen.kt](file:///d:/stresssence/app/src/main/java/com/stresssense/app/presentation/navigation/Screen.kt)
+- Add new screens `Questionnaire` (route: `"questionnaire"`) and `PrivacyPolicy` (route: `"privacy_policy"`).
+
+#### [MODIFY] [NavGraph.kt](file:///d:/stresssence/app/src/main/java/com/stresssense/app/presentation/navigation/NavGraph.kt)
+- Include routes for `Screen.Questionnaire` and `Screen.PrivacyPolicy`.
+- Inject and supply required ViewModels or lambdas.
+
+---
+
+### Home & Settings UI Integration
+
+#### [MODIFY] [HomeScreen.kt](file:///d:/stresssence/app/src/main/java/com/stresssense/app/presentation/ui/home/HomeScreen.kt)
+- Add a beautiful secondary Card/CTA for the PSS-10 Questionnaire (e.g., "📝 Stress Survey (PSS-10)") next to or below the "Quick Scan" button.
+- Make it visual and modern, matching the soft gradient styles.
+
+#### [MODIFY] [SettingsScreen.kt](file:///d:/stresssence/app/src/main/java/com/stresssense/app/presentation/ui/settings/SettingsScreen.kt)
+- Wire up the `Privacy Policy` click action to navigate to the new Privacy Policy screen instead of its current placeholder comment.
+
+---
+
+### PSS-10 Questionnaire Screen
+
+#### [NEW] [QuestionnaireScreen.kt](file:///d:/stresssence/app/src/main/java/com/stresssense/app/presentation/ui/questionnaire/QuestionnaireScreen.kt)
+- A modern Compose screen presenting the 10 PSS questions one by one.
+- Features:
+  - Top header showing current progress (e.g., `Question 4 of 10`) with a smooth linear progress bar.
+  - Large, elegant question text.
+  - 5 selectable option cards: `Never`, `Almost Never`, `Sometimes`, `Fairly Often`, `Very Often`.
+  - Next/Previous button navigation.
+  - A nice animated transition when moving between questions.
+  - A final submit dialog showing the calculated PSS score, category (Low/Moderate/High), and button to complete the survey.
+
+#### [NEW] [QuestionnaireViewModel.kt](file:///d:/stresssence/app/src/main/java/com/stresssense/app/presentation/ui/questionnaire/QuestionnaireViewModel.kt)
+- Holds current question index and selected answers state.
+- Formulates the PSS scoring logic:
+  - Answers mapped to 0-4 values.
+  - Reverse coding for questions 4, 5, 7, and 8 (indices 3, 4, 6, 7).
+  - Multiplies raw score by 2.5 to map it to the 0-100 system.
+  - Saves the result via `SaveScanUseCase` with `scanType = "QUESTIONNAIRE"`.
+
+---
+
+### Graphs & History Filtering
+
+#### [MODIFY] [HistoryViewModel.kt](file:///d:/stresssence/app/src/main/java/com/stresssense/app/presentation/ui/history/HistoryViewModel.kt)
+- Add a new state property `selectedScanTypeFilter` to filter scans (options: `ALL`, `ACTIVE` (sensor-based), `PASSIVE` (passive background), `QUESTIONNAIRE` (PSS survey)).
+- Update search query or filtering logic to display only the selected scan type in the list and graph.
+
+#### [MODIFY] [HistoryScreen.kt](file:///d:/stresssence/app/src/main/java/com/stresssense/app/presentation/ui/history/HistoryScreen.kt)
+- Add a beautiful horizontal filter chips row (e.g., "All", "Sensors", "Surveys", "Background") below the time range selection.
+- Update history item detail rows to show the questionnaire results:
+  - If `scanType == "QUESTIONNAIRE"`, render "PSS Survey Score: [Score]/40" in the details expansion instead of sensor details (like HRV/Voice/Facial).
+
+---
+
+### Privacy Policy Screen
+
+#### [NEW] [PrivacyPolicyScreen.kt](file:///d:/stresssence/app/src/main/java/com/stresssense/app/presentation/ui/settings/PrivacyPolicyScreen.kt)
+- A readable, professional Compose screen detailing the privacy-first nature of the application (100% local, on-device ML/inference processing, no cloud syncing).
+- Provides simple scrolling layout matching the application's clean design theme.
+
+---
+
+## Verification Plan
+
+### Automated Build Verification
+We will build the project from terminal using:
+```powershell
+$env:JAVA_HOME="D:\stresssence\.tools\jdk-17"
+.\gradlew.bat assembleDebug
+```
+This compiles the merged app code and packages it into `app/build/outputs/apk/debug/app-debug.apk`.
+
+### Manual UI & Logic Checks
+- Navigate to PSS-10 Questionnaire from Home, complete it, and verify the score calculates correctly (with reverse coding).
+- Verify PSS-10 results are saved to database and appear under the "History" tab under "Surveys" or "All" filters.
+- Verify the graph accurately renders the questionnaire trend line.
+- Verify clicking the Privacy Policy settings option successfully navigates to the privacy details page.

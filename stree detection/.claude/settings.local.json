@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(where emulator *)",
+      "Bash(where adb *)",
+      "Bash(cmd //c \"dir \\\\\"C:\\\\\\\\Program Files\\\\\" 2>/dev/null | findstr /i android\")",
+      "Bash(cmd //c \"dir \\\\\"C:\\\\\\\\Users\\\\\\\\gaura\\\\\\\\AppData\\\\\\\\Local\\\\\" 2>/dev/null | findstr /i android\")",
+      "Bash(cmd //c \"dir \\\\\"C:\\\\\\\\Users\\\\\\\\gaura\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Android\\\\\" 2>/dev/null\")",
+      "Bash(cmd *)"
+    ]
+  }
+}
