@@ -1,161 +1,108 @@
-# 🧠 StressSense — On-Device Multi-Modal Stress Detection
+# StressSense — on-device stress estimation from phone sensors
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Platform-Android_8.0%2B_(API_26%2B)-brightgreen?style=for-the-badge&logo=android" alt="Android" />
-  <img src="https://img.shields.io/badge/Language-Kotlin_1.9.22-blue?style=for-the-badge&logo=kotlin" alt="Kotlin" />
-  <img src="https://img.shields.io/badge/UI-Jetpack_Compose_m3-purple?style=for-the-badge&logo=jetpackcompose" alt="Jetpack Compose" />
-  <img src="https://img.shields.io/badge/ML-TensorFlow_Lite_(INT8)-orange?style=for-the-badge&logo=tensorflow" alt="TensorFlow Lite" />
-  <img src="https://img.shields.io/badge/Privacy-100%25_On--Device-success?style=for-the-badge&logo=shield" alt="Privacy First" />
-</p>
+Android app (Kotlin, Jetpack Compose) that estimates a 0–100 stress score using only the phone: camera PPG for heart-rate variability, voice, face, typing rhythm and usage patterns. Everything runs on the device, with no network calls.
 
----
+## Results at a glance
 
-## 📌 Project Overview
+| | Value | How it was measured |
+|---|---|---|
+| Behavioural model accuracy | **91.1%** (macro F1 0.906) | Shipped `stress_model.tflite` on 450 held-out rows of the **synthetic** dataset, 3 classes (Low / Medium / High) |
+| Gradient Boosting teacher | 90.4% test, 91.8% ± 0.9% 5-fold CV | Same synthetic data, same split |
+| Model size | **9.75 KB** (9,984 bytes) | `app/src/main/assets/stress_model.tflite`, weights quantised to 8-bit, float32 input and output |
+| Inference time | **~1.6 µs** median per sample | Desktop CPU (Intel i5-1135G7) with the LiteRT interpreter. Not yet measured on a phone |
+| Fusion weights | HRV 50%, voice 25%, face 15%, typing 5%, usage 5% | `StressScoreCalculator.kt`; weights are re-normalised when a sensor is unavailable |
 
-**StressSense** is an advanced, privacy-first Android application that continuously monitors and classifies user stress levels on a continuous **0–100 scale** using **only built-in smartphone sensors**. No smartwatches, external wearables, or cloud servers are required.
+> **About the data.** No labelled phone-sensor stress dataset was available, so the behavioural model was trained on **synthetic data**. The 11 features were generated from a hidden stress value, with effect directions taken from published research. Because the labels come from the same generator, the 91% shows that the pipeline works end to end (training → distillation → TFLite → Android). It does **not** show how well the model predicts real stress. Validating it on real users (for example with PSS-10 questionnaire scores as labels) is the next step.
 
-The system fuses two complementary paradigms:
-1. **Physiological Signal DSP Pipelines**: Real-time camera Photoplethysmography (PPG/HRV), microphone acoustic voice biomarkers, and front-camera facial landmark dynamics.
-2. **On-Device Behavioral Machine Learning**: Passive typing dynamics, phone usage patterns, movement variance, and communication habits classified via an **ultra-lightweight, 8-bit quantized TensorFlow Lite model**.
+## Architecture
 
----
+```mermaid
+flowchart LR
+    subgraph Sensors
+        CAM[Rear camera + flash]
+        MIC[Microphone]
+        FCAM[Front camera]
+        KEY[Accessibility service<br/>key timing only]
+        USE[Usage stats +<br/>accelerometer]
+    end
 
-## ⚡ On-Device ML Benchmarks (Accuracy / Model Size / Latency)
+    CAM --> PPG[PPGProcessor<br/>0.7–4 Hz bandpass, peak detection] --> HRV[HRVCalculator<br/>RMSSD, SDNN, pNN50]
+    MIC --> VOICE[VoiceAnalyzer<br/>YIN pitch, jitter, shimmer]
+    FCAM --> FACE[FaceAnalyzer<br/>ML Kit: blink rate, eye openness]
+    KEY --> BFC[BehavioralFeatureCollector<br/>11 features, z-scored]
+    USE --> BFC
+    BFC --> TFL[StressInferenceEngine<br/>TFLite MLP, 9.75 KB]
 
-The behavioral stress inference engine utilizes a knowledge-distilled neural network optimized for zero-impact mobile execution:
-
-| Metric | Measured Benchmark | Details & Notes |
-| :--- | :--- | :--- |
-| **Model Accuracy** | **91.2%** | Validation accuracy on 3-class stress prediction (*Low*, *Medium*, *High*), distilled from 93.5% Gradient Boosting teacher model (>99% parity) |
-| **Model Size** | **5.77 KB** (5,912 bytes) | INT8 full-integer quantized TFLite binary (`stress_model.tflite`) |
-| **Inference Latency** | **< 1.8 ms** | Average single-sample inference time on mobile CPU |
-
-### Real-Time Signal Processing Latency Breakdown
-
-```
- ┌──────────────────────────────────────┬───────────────────────────┐
- │ Subsystem / Pipeline                 │ Average Execution Latency │
- ├──────────────────────────────────────┼───────────────────────────┤
- │ TFLite Behavioral Inference          │ < 1.8 ms                  │
- │ PPG Signal Bandpass & HRV Peak Find  │ ~12 ms / frame batch      │
- │ Voice Biomarker YIN & Jitter Analysis│ ~45 ms / 10s audio window │
- │ Facial Landmark Detection (ML Kit)   │ ~18 ms / frame            │
- │ Multi-Modal Score Fusion             │ < 5 ms                    │
- └──────────────────────────────────────┴───────────────────────────┘
+    HRV -->|50%| FUSE[StressScoreCalculator<br/>weighted fusion → 0–100]
+    VOICE -->|25%| FUSE
+    FACE -->|15%| FUSE
+    TFL -->|typing 5% + usage 5%| FUSE
+    FUSE --> DB[(Room DB)] --> UI[Compose UI<br/>Home · Scan · History]
 ```
 
----
+The app follows Clean Architecture with MVVM:
 
-## 🎛 Multi-Modal Signal Fusion
+| Layer | Contents |
+|---|---|
+| Presentation | Jetpack Compose screens (Home, Scan, History, Settings, Onboarding, Questionnaire), ViewModels, Navigation |
+| Domain | `algorithms/` signal processing, `behavioral/` feature collection and TFLite inference, use cases |
+| Data | Room (3 entities), repository, DataStore preferences |
+| Services | `PassiveMonitoringService` (foreground), `TypingAccessibilityService`, `DailyAggregationWorker` |
 
-StressSense calculates a composite **0–100 Stress Score** by dynamically weighting available sensor modalities:
+## The behavioural model
 
-```
-                      ┌───────────────────────────┐
-                      │  Composite Stress Score   │
-                      │          (0 - 100)        │
-                      └─────────────┬─────────────┘
-                                    │
-    ┌─────────────────┬─────────────┼─────────────┬─────────────────┐
-    │ 50%             │ 25%         │ 15%         │ 5%              │ 5%
-    ▼                 ▼             ▼             ▼                 ▼
-┌──────────────┐ ┌──────────┐ ┌───────────┐ ┌───────────┐ ┌──────────────────┐
-│ PPG / HRV    │ │ Voice    │ │ Facial    │ │ Typing    │ │ Usage Patterns   │
-│ (RMSSD, SDNN)│ │ (Pitch)  │ │ (Blink)   │ │ (Speed)   │ │ (App Switches)   │
-└──────────────┘ └──────────┘ └───────────┘ └───────────┘ └──────────────────┘
-```
+[`stree detection/ml_model/`](stree%20detection/ml_model) contains the full pipeline:
 
-- **PPG / HRV (50% Weight)**: Rear camera + LED flash captures red-channel pixel intensities, detrended and bandpass filtered (0.7–4 Hz Butterworth), extracting R-R intervals to compute **RMSSD**, **SDNN**, and **pNN50**.
-- **Voice Biomarkers (25% Weight)**: 10-second 16 kHz audio buffer analyzed with the **YIN algorithm** for pitch ($F_0$), jitter, shimmer, and speech rate.
-- **Facial Cues (15% Weight)**: Front camera + Google ML Kit extracts blink rate, eye openness, and smile probability.
-- **Typing Dynamics (5% Weight)**: Accessibility service tracks typing speed, variance, and backspace error rates.
-- **App & Motion Usage (5% Weight)**: Accelerometer movement variance, unlock frequency, screen time, and late-night usage.
+1. **`train_model.py`** generates 3,000 synthetic samples with 11 features (typing speed and variance, backspace rate, app switches, unlocks, screen time, social-app share, late-night use, movement variance, steps, call/SMS change). It splits them 70/15/15 and trains a Gradient Boosting classifier (200 trees, depth 5).
+2. **`convert_to_tflite.py`** distils the Gradient Boosting model into a small Keras MLP (64 → 32 → 16 → 3) on 8,000 points labelled by the teacher. It then converts the MLP to TFLite with default post-training quantisation, and also writes `feature_stats.txt` (means and standard deviations) for the app.
+3. **`evaluate_tflite.py`** re-creates the test split and scores the `.tflite` file that the app actually ships.
 
----
+Test-set confusion matrix for the shipped model (rows = true, columns = predicted):
 
-## 📱 App Architecture & Tech Stack
+| | Low | Medium | High |
+|---|---|---|---|
+| **Low** | 174 | 11 | 0 |
+| **Medium** | 3 | 119 | 13 |
+| **High** | 0 | 13 | 117 |
 
-Built following **Clean Architecture + MVVM** principles and standard Android best practices:
+All errors fall in a neighbouring class. Low and High are never confused with each other.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     PRESENTATION LAYER                      │
-│   Jetpack Compose UI (Home, Scan, History, Settings,        │
-│   Onboarding, Questionnaire) + ViewModels + Navigation      │
-├─────────────────────────────────────────────────────────────┤
-│                        DOMAIN LAYER                         │
-│  • algorithms/   PPGProcessor, SignalProcessor, HRVCalculator│
-│                  VoiceAnalyzer, FaceAnalyzer, ScoreCalc     │
-│  • behavioral/   BehavioralFeatureCollector, StressInference│
-│  • usecases/     SaveScan, GetHistory, GetLatestScan        │
-├─────────────────────────────────────────────────────────────┤
-│                         DATA LAYER                          │
-│   Room DB (3 entities) · Repository · DataStore preferences  │
-├─────────────────────────────────────────────────────────────┤
-│                     SERVICES / OS LAYER                     │
-│   PassiveMonitoringService (Foreground) ·                   │
-│   TypingAccessibilityService · DailyAggregationWorker       │
-│   CameraX · AudioRecord · Accelerometer · ML Kit            │
-└─────────────────────────────────────────────────────────────┘
+Reproduce:
+
+```bash
+pip install scikit-learn pandas numpy joblib ai-edge-litert
+python "stree detection/ml_model/train_model.py"
+python "stree detection/ml_model/evaluate_tflite.py" app/src/main/assets/stress_model.tflite app/src/main/assets/feature_stats.txt
 ```
 
-### Stack Components
-- **Language**: Kotlin 1.9.22 (JDK 17)
-- **UI Framework**: Jetpack Compose + Material 3
-- **Dependency Injection**: Hilt 2.50
-- **Database**: Room DB 2.6.1 (3 local tables)
-- **Camera & Vision**: CameraX 1.3.1 + Google ML Kit Face Detection 16.1.6
-- **ML Runtime**: TensorFlow Lite 2.14.0
-- **Background Tasks**: WorkManager + Android Foreground Service
-- **Charting**: Vico (Compose-native charts)
+Re-running `convert_to_tflite.py` also needs `tensorflow`.
 
----
+## Privacy
 
-## 🔒 Privacy & Security First
+- No network permission is used, and nothing leaves the device.
+- Camera frames and audio buffers are processed in memory and then discarded.
+- The typing service records only the time between keys and the number of corrections, **never which keys were pressed**.
+- History is stored locally in Room.
 
-- **100% On-Device Execution**: Zero network requests. Raw camera frames, audio samples, and keystrokes are processed strictly in RAM and discarded immediately.
-- **No Text Logging**: The `TypingAccessibilityService` measures solely inter-key timing intervals and correction frequencies — **never keystroke characters or text content**.
-- **Local Storage Only**: Historical daily summaries and scan logs remain encrypted inside local Room DB on device.
+## Build and run
 
----
+Requirements: Android Studio (Hedgehog or newer), JDK 17, Android SDK 34. Minimum device: Android 8.0 (API 26).
 
-## 🛠 How to Build & Run
+- **Android Studio:** open the repo folder, let Gradle sync, then press Run.
+- **Command line:**
 
-### Prerequisites
-1. **Android Studio** (Hedgehog 2023.1.1 or newer)
-2. **JDK 17** (Embedded JBR in Android Studio)
-3. Android SDK with `compileSdk 34` and `minSdk 26`
-
-### Option A — Android Studio
-1. Open Android Studio and select `File ▸ Open`.
-2. Select the `D:\stresssence` root directory.
-3. Allow Gradle to sync dependencies.
-4. Connect an Android device (API level 26+) or start an emulator.
-5. Click **Run ▶** (`Shift + F10`).
-
-### Option B — Command Line (Windows PowerShell / CMD)
-```cmd
-cd d:\stresssence
-
-:: Set environment variables (adjust paths if required)
-set JAVA_HOME=C:\Program Files\Android\Android Studio\jbr
-set ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk
-
-:: Build Debug APK
-gradlew.bat assembleDebug
+```bash
+./gradlew assembleDebug        # Windows: gradlew.bat assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-The compiled APK will be available at:
-`app\build\outputs\apk\debug\app-debug.apk`
+## Limitations and next steps
 
-Install to device via ADB:
-```cmd
-%ANDROID_HOME%\platform-tools\adb install -r app\build\outputs\apk\debug\app-debug.apk
-```
+- The behavioural model has only been validated on synthetic data (see above).
+- The fusion weights and the HRV-to-score mapping are hand-set from the literature, not learned.
+- Camera PPG is sensitive to finger pressure and movement. Signal-quality checks exist, but they have not been benchmarked against a chest strap.
+- Next: collect a small labelled dataset (PSS-10 score plus a week of passive data), measure latency on real phones, and learn the fusion weights.
 
----
+## Tech
 
-## 📄 License & Repository
-
-- **GitHub Repository**: [https://github.com/gaurang2-6/streesense](https://github.com/gaurang2-6/streesense)
-- Developed as an offline-first, multi-modal mental wellness and stress assessment system.
+Kotlin · Jetpack Compose · Material 3 · Hilt · Room · CameraX · ML Kit · TensorFlow Lite · WorkManager · Python · scikit-learn · Keras
