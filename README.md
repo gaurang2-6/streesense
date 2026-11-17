@@ -2,7 +2,7 @@
 
 Android app (Kotlin, Jetpack Compose) that estimates a 0–100 stress score using only the phone: camera PPG for heart-rate variability, voice, face, typing rhythm and usage patterns. Everything runs on the device, with no network calls.
 
-## 🎬 Showreel
+
 
 <p align="center">
   <a href="showreel/stresssense-showreel.mp4"><img src="showreel/poster.jpg" alt="StressSense 15-second motion showreel" width="820" /></a>
