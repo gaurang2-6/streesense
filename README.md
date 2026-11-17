@@ -5,8 +5,8 @@ Android app (Kotlin, Jetpack Compose) that estimates a 0–100 stress score usin
 
 
 <p align="center">
-  <a href="showreel/stresssense-showreel.mp4"><img src="showreel/poster.jpg" alt="StressSense 15-second motion showreel" width="820" /></a>
-  <br/><sub><a href="showreel/stresssense-showreel.mp4">▶ Watch the 15s showreel</a> · 1080p60 · built frame by frame in code (<a href="showreel/">source</a>)</sub>
+  <a href="showreel/stresssense-showreel.mp4"><img src="showreel/showreel.webp" alt="StressSense 15-second motion showreel" width="820" /></a>
+  <br/><sub><a href="showreel/stresssense-showreel.mp4">▶ Watch with sound (MP4)</a> · 1080p60 · built frame by frame in code (<a href="showreel/">source</a>)</sub>
 </p>
 
 ## Results at a glance
