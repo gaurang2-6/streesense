@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StressSense Showreel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;500;800&family=Familjen+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=block">
+<style>
+  html,body{margin:0;height:100%;background:#000;overflow:hidden}
+  canvas{display:block;position:absolute;inset:0;margin:auto;max-width:100vw;max-height:100vh;width:auto;height:auto;aspect-ratio:16/9}
+  body.render canvas{width:1920px;height:1080px;max-width:none;max-height:none}
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<script src="timeline.js"></script>
+<script>
+(() => {
+'use strict';
+const W = 1920, H = 1080, TAU = Math.PI * 2;
+const RENDER = /render=1/.test(location.search);
+if (RENDER) document.body.classList.add('render');
+const X = document.getElementById('c').getContext('2d');
+const B = document.createElement('canvas'); B.width = W; B.height = H;
+const BC = B.getContext('2d');
+let c = BC;
+
+const C = { field: '#0a0a0b', panel: '#121214', ink: '#e7e3da', ink2: '#9c988f', rule: '#2a2a2d', sig: '#ff3d2e' };
+const F = { disp: '"Unbounded"', mono: '"IBM Plex Mono"', serif: '"Instrument Serif"', body: '"Familjen Grotesk"' };
+
+/* ---------- maths ---------- */
+const cl = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const seg = (t, a, b) => cl((t - a) / (b - a));
+const lerp = (a, b, p) => a + (b - a) * p;
+const eOut = p => 1 - Math.pow(1 - p, 3);
+const eIn = p => p * p * p;
+const eExpo = p => p >= 1 ? 1 : 1 - Math.pow(2, -10 * p);
+const eInOut = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+const back = p => { const s = 2.2; return p <= 0 ? 0 : 1 + (s + 1) * Math.pow(p - 1, 3) + s * Math.pow(p - 1, 2); };
+const spring = (dt, f = 11, d = 7) => dt <= 0 ? 0 : 1 - Math.exp(-d * dt) * Math.cos(f * dt);
+const hash = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const noise1 = x => { const i = Math.floor(x), f = x - i, u = f * f * (3 - 2 * f); return lerp(hash(i), hash(i + 1), u) * 2 - 1; };
+const G = (x, s) => Math.exp(-(x * x) / (2 * s * s));
+
+/* ---------- signals (share TL.beats with the audio) ---------- */
+const BEATS = TL.beats;
+function ecg(tm) {
+  let v = 0;
+  for (let i = 0; i < BEATS.length; i++) {
+    const d = tm - BEATS[i];
+    if (d < -0.3) break;
+    if (d > 0.5) continue;
+    v += 0.12 * G(d + 0.16, 0.022) - 0.14 * G(d + 0.028, 0.007) + G(d, 0.009) - 0.28 * G(d - 0.026, 0.009) + 0.26 * G(d - 0.2, 0.035);
+  }
+  return v;
+}
+function pulse(t, k = 7) {
+  let last = -9;
+  for (const b of BEATS) { if (b > t) break; last = b; }
+  return Math.exp(-(t - last) * k);
+}
+const EDA_P = [2.4, 2.95, 3.45, 3.9, 4.35, 5.1];
+function eda(tm) {
+  let v = -0.55 + tm * 0.08 + 0.18 * noise1(tm * 0.9);
+  for (const p of EDA_P) { const d = tm - p; if (d > 0) v += 0.85 * (d / 0.22) * Math.exp(1 - d / 0.22); }
+  return v;
+}
+const acc = tm => (0.6 * noise1(tm * 17) + 0.35 * noise1(tm * 41 + 9)) * (0.55 + 0.45 * noise1(tm * 1.7 + 3));
+const temp = tm => 0.5 * Math.sin(tm * 1.1) + 0.12 * noise1(tm * 4);
+const hitAmt = (t, k) => { let a = 0; for (const h of TL.hits) if (t >= h) a = Math.max(a, Math.exp(-(t - h) * k)); return a; };
+
+/* ---------- drawing helpers ---------- */
+function txt(s, x, y, o = {}) {
+  const { font = F.body, size = 24, color = C.ink, align = 'left', base = 'alphabetic', ls = 0, alpha = 1, weight = '', style = '' } = o;
+  if (alpha <= 0) return;
+  c.save();
+  c.globalAlpha *= alpha;
+  c.font = `${style} ${weight} ${size}px ${font}`;
+  c.letterSpacing = ls + 'px';
+  c.fillStyle = color; c.textAlign = align; c.textBaseline = base;
+  c.fillText(s, x, y);
+  c.restore();
+}
+const mono = (s, x, y, o = {}) => txt(s.toUpperCase(), x, y, { font: F.mono, size: 19, color: C.ink2, ls: 2.6, weight: 500, ...o });
+function typeMono(s, x, y, p, o = {}) {
+  if (p <= 0) return;
+  const n = Math.floor(s.length * p);
+  mono(s.slice(0, n) + (p < 1 ? '▌' : ''), x, y, o);
+}
+const serif = (s, x, y, o = {}) => txt(s, x, y, { font: F.serif, size: 46, style: 'italic', color: C.ink, ...o });
+function note(s, x, y, p, size = 44) {
+  if (p <= 0) return;
+  c.save();
+  c.fillStyle = C.sig; c.fillRect(x, y - size * 0.95, 2, size * 1.25 * eOut(p));
+  c.restore();
+  serif(s, x + 22, y + (1 - eOut(p)) * 16, { size, alpha: eOut(p), color: C.ink });
+}
+function measure(s, font) { c.save(); c.font = font; const w = c.measureText(s).width; c.restore(); return w; }
+
+function trace(fn, x0, x1, headX, y, amp, pps, t, o = {}) {
+  const { col = C.ink, lw = 2.4, tmin = -1e9, alpha = 1 } = o;
+  if (alpha <= 0 || x1 - x0 < 1) return;
+  c.save();
+  c.globalAlpha *= alpha;
+  const g = c.createLinearGradient(x0, 0, x1, 0);
+  g.addColorStop(0, 'rgba(231,227,218,0)');
+  g.addColorStop(0.3, 'rgba(231,227,218,.45)');
+  g.addColorStop(1, col);
+  c.strokeStyle = g; c.lineWidth = lw; c.lineJoin = 'round';
+  c.beginPath();
+  for (let x = x0; x <= x1 + 0.01; x += 2) {
+    const tm = t - (headX - x) / pps;
+    const v = tm < tmin ? 0 : fn(tm);
+    if (x === x0) c.moveTo(x, y - v * amp); else c.lineTo(x, y - v * amp);
+  }
+  c.stroke();
+  c.restore();
+}
+function headDot(x, y, glow = 0, r = 6, alpha = 1) {
+  c.save();
+  c.globalAlpha *= alpha;
+  c.shadowColor = C.sig; c.shadowBlur = 24 + glow * 40;
+  c.fillStyle = C.sig;
+  c.beginPath(); c.arc(x, y, r + glow * 3, 0, TAU); c.fill();
+  c.restore();
+}
+function ring(x, y, r, a, col = C.sig, lw = 2) {
+  if (a <= 0) return;
+  c.save(); c.globalAlpha *= a; c.strokeStyle = col; c.lineWidth = lw;
+  c.beginPath(); c.arc(x, y, r, 0, TAU); c.stroke(); c.restore();
+}
+
+/* ---------- shared geometry ---------- */
+const FOREST = [];
+for (let r = 0; r < 4; r++) for (let q = 0; q < 9; q++) {
+  const i = r * 9 + q;
+  FOREST.push({ x: 300 + q * 125, y: 335 + r * 142, i, h: hash(i + 3) });
+}
+function tree(x, y, s, p, seed, col = C.ink) {
+  if (p <= 0) return;
+  const depth = 3;
+  c.strokeStyle = col; c.fillStyle = col; c.lineWidth = 1.6;
+  c.fillRect(x - 3, y - 3, 6, 6);
+  (function br(px, py, L, sp, lev, id) {
+    if (lev >= depth) return;
+    const pl = cl(p * depth - lev);
+    if (pl <= 0) return;
+    for (const dir of [-1, 1]) {
+      const cid = id * 2 + (dir > 0 ? 1 : 0);
+      if (lev > 0 && hash(seed * 31 + cid) < 0.2) continue;
+      const nx = px + dir * sp, ny = py + L;
+      c.beginPath(); c.moveTo(px, py); c.lineTo(lerp(px, nx, pl), lerp(py, ny, pl)); c.stroke();
+      if (pl >= 1) { c.fillRect(nx - 2.5, ny - 2.5, 5, 5); br(nx, ny, L, sp * 0.5, lev + 1, cid); }
+    }
+  })(x, y, s * 0.36, s * 0.36, 0, 1);
+}
+const CELL = 44, GAP = 12, BLK = CELL * 4 + GAP * 3;
+function block(cx, cy, sc, a, pop = () => 1) {
+  if (a <= 0 || sc <= 0) return;
+  c.save(); c.globalAlpha *= a; c.translate(cx, cy); c.scale(sc, sc);
+  for (let j = 0; j < 16; j++) {
+    const p = pop(j); if (p <= 0) continue;
+    const r = j / 4 | 0, q = j % 4;
+    const x = -BLK / 2 + q * (CELL + GAP) + CELL / 2, y = -BLK / 2 + r * (CELL + GAP) + CELL / 2;
+    const s = CELL * p;
+    c.globalAlpha = a * (0.38 + ((j * 7) % 10) / 16);
+    c.fillStyle = C.sig; c.fillRect(x - s / 2, y - s / 2, s, s);
+  }
+  c.restore();
+}
+function blockFrame(cx, cy, sc, p) {
+  if (p <= 0) return;
+  const s = (BLK + 28) * sc, per = s * 4;
+  c.save(); c.strokeStyle = C.sig; c.lineWidth = 1.5;
+  c.setLineDash([per * p, per]);
+  c.strokeRect(cx - s / 2, cy - s / 2, s, s);
+  c.restore();
+}
+
+/* byte grid: one dot per byte of the shipped model */
+const BYTES = Math.round(5.77 * 1024); // 5,908
+const BCOLS = 120, PITCH = 14;
+const BOX = (W - BCOLS * PITCH) / 2 + PITCH / 2, BOY = 197;
+const DOTS = [];
+{
+  const maxd = Math.hypot(960 - BOX, 540 - BOY);
+  for (let i = 0; i < BYTES; i++) {
+    const x = BOX + (i % BCOLS) * PITCH, y = BOY + (i / BCOLS | 0) * PITCH;
+    DOTS.push({ x, y, ft: 8.6 + Math.hypot(x - 960, y - 540) / maxd * 0.95 + hash(i) * 0.07, a: 0.45 + hash(i + 99) * 0.5, im: 9.62 + hash(i + 7) * 0.2 });
+  }
+}
+
+/* ---------- scenes ---------- */
+function sPulse(t) {
+  const u = t;
+  const head = lerp(260, 1460, eOut(seg(u, 0.25, 1.5)));
+  const amp = 170, y0 = 540;
+  // the word STRESS, outlined, stamped on each beat, then crushed into the trace
+  if (u > 0.8) {
+    const k = eIn(seg(u, 1.85, 2.2));
+    const sy = spring(u - 0.8) * (1 - k * 0.985), sx = 1 + 0.28 * k;
+    const pu = pulse(t, 9);
+    c.save();
+    c.translate(960, 545); c.scale(sx, sy);
+    c.font = `800 262px ${F.disp}`; c.letterSpacing = '-4px'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.globalAlpha = 0.85 * pu;
+    c.fillStyle = C.sig; c.fillText('STRESS', 10 * pu, 0);
+    c.globalAlpha = 1;
+    c.lineWidth = 2; c.strokeStyle = C.ink; c.strokeText('STRESS', 0, 0);
+    c.restore();
+  }
+  trace(ecg, 160, head, head, y0, amp, 600, t, { tmin: 0.25 });
+  const hy = y0 - ecg(t) * amp, pu = pulse(t);
+  headDot(head, hy, pu);
+  for (const b of BEATS) if (b <= t && t - b < 0.6) ring(head, y0, 10 + (t - b) * 260, (1 - (t - b) / 0.6) * 0.8);
+
+  typeMono('Field recording 014', 110, 175, seg(u, 0.35, 0.9), { color: C.ink, size: 22 });
+  typeMono('Subject A · wrist + chest sensors · 14:02:11', 110, 210, seg(u, 0.55, 1.35));
+  const bpmA = seg(u, 0.5, 0.8);
+  const bpm = Math.round(TL.bpm(t));
+  txt(String(bpm), 1810, 210, { font: F.disp, weight: 500, size: 92, align: 'right', color: bpm > 100 ? C.sig : C.ink, alpha: bpmA, ls: -2 });
+  mono('BPM · heart rate', 1810, 245, { align: 'right', alpha: bpmA });
+  note('Stress shows up in the body before anyone says a word.', 1000, 905, seg(u, 1.05, 1.5), 40);
+}
+
+const LANES = [
+  { n: 'CH 01 · ECG', d: 'heart', fn: ecg, val: t => Math.round(TL.bpm(t)) + ' BPM' },
+  { n: 'CH 02 · EDA', d: 'skin conductance', fn: eda, val: t => (3.1 + eda(t) * 0.8).toFixed(2) + ' µS' },
+  { n: 'CH 03 · ACCEL', d: 'movement', fn: acc, val: t => Math.abs(acc(t) * 0.4).toFixed(2) + ' g' },
+  { n: 'CH 04 · TEMP', d: 'skin temperature', fn: temp, val: t => (33.4 + temp(t) * 0.4).toFixed(1) + ' °C' },
+];
+function sSignals(t) {
+  const u = t - 2.2;
+  const K = eInOut(seg(u, 1.95, 2.45));
+  const in0 = eExpo(seg(u, 0, 0.6));
+  const X0 = lerp(160, 380, in0), HX = 1460;
+  const fadeK = 1 - seg(u, 1.85, 2.15);
+  mono('01 · Signals', 380, 122, { alpha: seg(u, 0.2, 0.5) * fadeK, color: C.sig });
+  txt('Four signals, one question', 380, 180, { font: F.disp, weight: 500, size: 44, alpha: eOut(seg(u, 0.25, 0.6)) * fadeK, ls: -1 });
+  // now line
+  c.save(); c.globalAlpha = 0.6 * in0 * fadeK; c.strokeStyle = C.ink2; c.setLineDash([4, 6]);
+  c.beginPath(); c.moveTo(HX + 0.5, 225); c.lineTo(HX + 0.5, 885); c.stroke(); c.restore();
+  LANES.forEach((L, i) => {
+    const app = i === 0 ? 1 : eExpo(seg(u, 0.05 + i * 0.12, 0.65 + i * 0.12));
+    const tgt = 300 + 170 * i;
+    let ly = lerp(540, tgt, i === 0 ? in0 : app);
+    let amp = (i === 0 ? lerp(170, 62, in0) : 52 * app) * (1 - K);
+    ly = lerp(ly, 540, K);
+    const x0 = lerp(X0, 960, K), x1 = lerp(HX, 960, K);
+    c.save(); c.globalAlpha = 0.7 * app * fadeK; c.fillStyle = C.rule; c.fillRect(380, tgt + 72, 1080, 1); c.restore();
+    trace(L.fn, x0, x1, x1, ly, amp, 600, t, { alpha: app, tmin: i === 0 ? 0.25 : -1e9 });
+    headDot(x1, ly - L.fn(t) * amp, i === 0 ? pulse(t) : 0, 4.5, app * (1 - K));
+    const la = seg(u, 0.15 + i * 0.12, 0.5 + i * 0.12) * fadeK;
+    mono(L.n, 110, tgt - 6, { color: C.ink, alpha: la });
+    mono(L.d, 110, tgt + 22, { size: 16, alpha: la });
+    txt(L.val(t), HX + 28, tgt + 8, { font: F.mono, size: 24, weight: 500, alpha: la, color: i === 0 ? C.sig : C.ink });
+  });
+  note('Is this person under stress, right now?', 380, 960, seg(u, 0.9, 1.35) * fadeK, 40);
+  if (K > 0) { c.save(); c.fillStyle = C.ink; c.shadowColor = C.ink; c.shadowBlur = 20 * K; c.beginPath(); c.arc(960, 540, 7 * K, 0, TAU); c.fill(); c.restore(); }
+}
+
+function sTeacher(t) {
+  const u = t - 4.7;
+  const cs = lerp(1.3, 1, eOut(seg(u, 0, 2.3)));
+  const PX = 800, PY = 600;
+  c.save();
+  c.translate(PX, PY); c.scale(cs, cs); c.translate(-PX, -PY);
+  // burst from the converged point to every tree root
+  const bp = eOut(seg(u, 0, 0.35)), ba = (1 - seg(u, 0.35, 0.8)) * 0.55;
+  if (ba > 0) {
+    const ox = PX + (960 - PX) / cs, oy = PY + (540 - PY) / cs;
+    c.save(); c.strokeStyle = C.ink2; c.lineWidth = 1; c.globalAlpha = ba; c.beginPath();
+    for (const f of FOREST) { c.moveTo(ox, oy); c.lineTo(lerp(ox, f.x, bp), lerp(oy, f.y, bp)); }
+    c.stroke(); c.restore();
+  }
+  for (const f of FOREST) {
+    const d0 = 0.12 + Math.hypot(f.x - PX, f.y - PY) / 1400 * 0.9 + f.h * 0.12;
+    tree(f.x, f.y, 90, eOut(seg(u, d0, d0 + 0.55)), f.i + 1, C.ink);
+  }
+  c.restore();
+  // right column
+  const out = eIn(seg(u, 1.85, 2.15)), pa = 1 - out, dx = out * 60;
+  const PXR = 1420 + dx;
+  typeMono('02 · Teacher', PXR, 330, seg(u, 0.2, 0.5), { color: C.sig, alpha: pa });
+  const v = 93.5 * eOut(seg(u, 0.4, 1.5));
+  txt(v.toFixed(1) + '%', PXR - 6, 470, { font: F.disp, weight: 800, size: 104, ls: -4, alpha: pa * seg(u, 0.35, 0.5) });
+  serif('gradient-boosted trees', PXR, 540, { size: 46, alpha: pa * eOut(seg(u, 0.6, 0.95)) });
+  typeMono('the most accurate model', PXR, 600, seg(u, 0.8, 1.15), { alpha: pa });
+  const st = seg(u, 1.2, 1.38);
+  if (st > 0) {
+    c.save(); c.globalAlpha = pa * cl(st * 3);
+    c.translate(PXR + 175, 672); c.rotate(-0.06); const s = lerp(1.7, 1, eExpo(st)); c.scale(s, s);
+    c.strokeStyle = C.sig; c.lineWidth = 2.5; c.strokeRect(-178, -30, 356, 56);
+    c.restore();
+    c.save(); c.globalAlpha = pa * cl(st * 3); c.translate(PXR + 175, 672); c.rotate(-0.06); c.scale(s, s);
+    c.font = `500 22px ${F.mono}`; c.letterSpacing = '3px'; c.fillStyle = C.sig; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText('TOO HEAVY TO SHIP', 0, -1); c.restore();
+  }
+  // the teacher's predictions stream right, to where the student will form
+  for (let k = 0; k < 64; k++) {
+    const f = FOREST[(k * 7) % 36];
+    const s0 = 1.75 + k * 0.011, q = eInOut(seg(u, s0, s0 + 0.6));
+    if (q <= 0 || q >= 1) continue;
+    const sx = PX + (f.x + (hash(k) - 0.5) * 100 - PX) * cs, sy = PY + (f.y + 90 - PY) * cs;
+    const ex = 1500, ey = 500, mx = (sx + ex) / 2, my = Math.min(sy, ey) - 220 * hash(k + 5);
+    const P = s => ({ x: (1 - s) * (1 - s) * sx + 2 * (1 - s) * s * mx + s * s * ex, y: (1 - s) * (1 - s) * sy + 2 * (1 - s) * s * my + s * s * ey });
+    const a = P(q), b = P(Math.max(0, q - 0.06));
+    c.save(); c.strokeStyle = k % 5 === 2 ? C.sig : C.ink; c.lineWidth = 2.5; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(b.x, b.y); c.lineTo(a.x, a.y); c.stroke(); c.restore();
+  }
+}
+
+function sDistil(t) {
+  const u = t - 7.3;
+  const BX = 1500, BY = 500;
+  if (t < 8.6) {
+    const zoom = eIn(seg(t, 8.25, 8.55));
+    c.save();
+    c.translate(BX, BY); c.scale(1 + zoom * 7, 1 + zoom * 7); c.translate(-BX, -BY);
+    c.globalAlpha = 1 - seg(t, 8.42, 8.55);
+    // trees collapse into particles that build the student
+    for (const f of FOREST) {
+      const d = (1300 - f.x) / 1000 * 0.35 + f.h * 0.15;
+      const k = eIn(seg(u, d, d + 0.3));
+      if (k < 1) {
+        c.save(); c.translate(f.x, f.y + 45); c.scale(1 - k, 1 - k); c.translate(-f.x, -f.y - 45);
+        tree(f.x, f.y, 90, 1, f.i + 1, C.ink); c.restore();
+      }
+      const q = eInOut(seg(u, d + 0.15, d + 0.6));
+      if (q > 0 && q < 1) {
+        const j = f.i % 16, tx = BX - BLK / 2 + (j % 4) * (CELL + GAP) + CELL / 2, ty = BY - BLK / 2 + (j / 4 | 0) * (CELL + GAP) + CELL / 2;
+        const sx = f.x, sy = f.y + 45, mx = (sx + tx) / 2, my = Math.min(sy, ty) - 180;
+        const px = (1 - q) * (1 - q) * sx + 2 * (1 - q) * q * mx + q * q * tx, py = (1 - q) * (1 - q) * sy + 2 * (1 - q) * q * my + q * q * ty;
+        c.fillStyle = f.i % 3 ? C.ink : C.sig; c.fillRect(px - 3, py - 3, 6, 6);
+      }
+    }
+    blockFrame(BX, BY, 1, eOut(seg(u, 0.2, 0.6)));
+    block(BX, BY, 1, 1, j => back(seg(u, 0.35 + j * 0.03, 0.6 + j * 0.03)));
+    typeMono('03 · Student · INT8 TFLite', BX, 340, seg(u, 0.3, 0.6), { align: 'center', color: C.sig });
+    const v = lerp(93.5, 91.2, eInOut(seg(u, 0.5, 1.0)));
+    txt(v.toFixed(1) + '%', BX, 735, { font: F.disp, weight: 800, size: 96, align: 'center', color: C.sig, ls: -3, alpha: seg(u, 0.45, 0.6) });
+    typeMono('−2.3 pts · keeps 97.5% of the teacher', BX, 785, seg(u, 0.85, 1.15), { align: 'center' });
+    // honest bars, full 0-100 scale
+    const BW = 860, bx = 300;
+    typeMono('Accuracy · bars drawn on the full 0–100 scale', bx, 420, seg(u, 0.7, 1.0));
+    [['Teacher', 93.5, C.ink, 480, 0.78], ['Student', 91.2, C.sig, 560, 0.9]].forEach(([n, val, col, y, s0]) => {
+      const p = eOut(seg(u, s0, s0 + 0.45));
+      if (p <= 0) return;
+      c.fillStyle = C.rule; c.fillRect(bx, y, BW, 18);
+      c.fillStyle = col; c.fillRect(bx, y, BW * val / 100 * p, 18);
+      mono(n, bx, y - 12, { alpha: p });
+      txt((val * p).toFixed(1) + '%', bx + BW + 20, y + 17, { font: F.mono, size: 24, weight: 500, color: col, alpha: p });
+    });
+    note('Small enough to ship inside the app.', bx, 700, seg(u, 0.85, 1.15), 42);
+    c.restore();
+  }
+  if (t >= 8.55) {
+    // every byte of the model
+    for (let i = 0; i < BYTES; i++) {
+      const d = DOTS[i];
+      const p = seg(t, d.ft, d.ft + 0.22), m = eIn(seg(t, d.im, 10.12));
+      const x = lerp(d.x, 960, m), y = lerp(d.y, 540, m);
+      if (p <= 0) { c.globalAlpha = 0.5 * (1 - m); c.fillStyle = C.rule; c.fillRect(x - 1.5, y - 1.5, 3, 3); continue; }
+      c.globalAlpha = (i === 0 ? 1 : d.a) * (1 - m * 0.6);
+      c.fillStyle = i === 0 ? C.sig : C.ink;
+      const r = (i === 0 ? 6 : 3.3) * back(p);
+      c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill();
+    }
+    c.globalAlpha = 1;
+    const cp = seg(t, 9.1, 9.35) * (1 - seg(t, 9.55, 9.7));
+    if (cp > 0) {
+      c.save(); c.strokeStyle = C.sig; c.lineWidth = 1; c.globalAlpha = cp;
+      c.beginPath(); c.moveTo(BOX + 8, BOY - 8); c.lineTo(BOX + 40, BOY - 40); c.lineTo(BOX + 70, BOY - 40); c.stroke(); c.restore();
+      mono('byte 1 of 5,908', BOX + 80, BOY - 33, { color: C.sig, alpha: cp });
+    }
+    const s = lerp(2.5, 1, eExpo(seg(t, 8.55, 8.85))) * lerp(1, 0.45, eIn(seg(t, 9.6, 9.95))) * (1 + pulse(t, 10) * 0.012);
+    const ta = seg(t, 8.55, 8.6) * (1 - seg(t, 9.75, 9.95));
+    if (ta > 0) {
+      c.save(); c.globalAlpha = ta; c.translate(960, 520); c.scale(s, s);
+      c.font = `800 280px ${F.disp}`; c.letterSpacing = '-8px'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.shadowColor = C.field; c.shadowBlur = 70; c.fillStyle = C.ink;
+      c.fillText('5.77 KB', 0, 0); c.fillText('5.77 KB', 0, 0);
+      c.shadowBlur = 0; c.fillText('5.77 KB', 0, 0);
+      c.restore();
+      c.save(); c.shadowColor = C.field; c.shadowBlur = 30;
+      serif('This is the whole model.', 960, 700, { size: 58, align: 'center', alpha: eOut(seg(t, 8.95, 9.25)) * (1 - seg(t, 9.6, 9.8)) });
+      c.restore();
+      mono('one dot = one byte · 5,908 bytes · INT8 weights + graph', 960, 950, { align: 'center', alpha: seg(t, 8.8, 9.1) * (1 - seg(t, 9.6, 9.8)), color: C.ink });
+    }
+    block(960, 540, 0.6, 1, j => back(seg(t, 9.95 + j * 0.008, 10.15 + j * 0.008)));
+  }
+}
+
+function sDevice(t) {
+  const u = t - 10.2;
+  const whip = eIn(seg(t, 12.35, 12.8));
+  c.save(); c.translate(-2400 * whip, 0);
+  const PXc = 700, PYc = 540;
+  const py = PYc + (1 - eOut(seg(u, 0, 0.55))) * 900 + (1 - spring(u, 14, 9)) * 0;
+  // phone body
+  c.save();
+  c.fillStyle = C.panel; c.strokeStyle = C.ink; c.lineWidth = 2;
+  c.beginPath(); c.roundRect(PXc - 180, py - 370, 360, 740, 46); c.fill(); c.stroke();
+  c.fillStyle = C.field; c.beginPath(); c.roundRect(PXc - 50, py - 352, 100, 22, 11); c.fill();
+  c.restore();
+  // the red block installs itself into the phone
+  const m = eInOut(seg(u, 0.05, 0.5));
+  if (u < 0.55) block(lerp(960, PXc, m), lerp(540, py - 200, m), lerp(0.6, 0.25, m), 1 - seg(u, 0.45, 0.55));
+  ring(PXc, py - 200, 20 + seg(u, 0.5, 0.9) * 160, 1 - seg(u, 0.5, 0.9), C.sig, 3);
+  const on = seg(u, 0.5, 0.75);
+  if (on > 0) {
+    c.save(); c.globalAlpha = on;
+    mono('StressSense', PXc, py - 280, { align: 'center', color: C.ink, size: 18 });
+    mono('on device · live', PXc, py - 252, { align: 'center', size: 14, color: C.sig });
+    const bpm = TL.bpm(t), lvl = cl((bpm - 66) / 64);
+    const rc = py - 80, R = 118;
+    c.lineWidth = 14; c.strokeStyle = C.rule; c.beginPath(); c.arc(PXc, rc, R, 0, TAU); c.stroke();
+    c.strokeStyle = lvl > 0.45 ? C.sig : C.ink; c.lineCap = 'round';
+    c.beginPath(); c.arc(PXc, rc, R, -Math.PI / 2, -Math.PI / 2 + TAU * lvl * eOut(seg(u, 0.55, 1.0))); c.stroke();
+    txt(String(Math.round(bpm)), PXc, rc + 18, { font: F.disp, weight: 500, size: 60, align: 'center', ls: -2 });
+    mono('bpm', PXc, rc + 52, { align: 'center', size: 15 });
+    txt(lvl > 0.45 ? 'ELEVATED' : 'CALM', PXc, py + 110, { font: F.disp, weight: 500, size: 30, align: 'center', color: lvl > 0.45 ? C.sig : C.ink, ls: 2 });
+    mono('stress level', PXc, py + 140, { align: 'center', size: 14 });
+    c.save(); c.beginPath(); c.rect(PXc - 150, py + 160, 300, 120); c.clip();
+    trace(ecg, PXc - 150, PXc + 140, PXc + 140, py + 230, 42, 150, t);
+    headDot(PXc + 140, py + 230 - ecg(t) * 42, pulse(t), 4);
+    c.restore();
+    mono('offline · 0 bytes sent', PXc, py + 320, { align: 'center', size: 14 });
+    c.restore();
+  }
+  // right column: one frame at 60 Hz holds nine predictions
+  const RX = 1080, RW = 720;
+  typeMono('04 · On device', RX, 300, seg(u, 0.35, 0.6), { color: C.sig });
+  txt('Inside one frame', RX, 372, { font: F.disp, weight: 500, size: 50, ls: -1, alpha: eOut(seg(u, 0.4, 0.7)) });
+  const sa = seg(u, 0.55, 0.75);
+  if (sa > 0) {
+    c.save(); c.globalAlpha = sa; c.strokeStyle = C.ink2; c.lineWidth = 1; c.strokeRect(RX + 0.5, 430.5, RW, 70); c.restore();
+    const sw = RW * 1.8 / 16.7;
+    for (let i = 0; i < 9; i++) {
+      const p = back(seg(t, 10.95 + i * 0.1, 11.13 + i * 0.1));
+      if (p <= 0) continue;
+      const x = RX + 4 + i * sw, h = 62 * p;
+      if (i === 0) { c.fillStyle = C.sig; c.fillRect(x, 465 - h / 2, sw - 4, h); }
+      else { c.save(); c.globalAlpha = 0.18; c.fillStyle = C.ink; c.fillRect(x, 465 - h / 2, sw - 4, h); c.restore();
+        c.save(); c.strokeStyle = C.ink2; c.strokeRect(x + 0.5, 465 - h / 2 + 0.5, sw - 5, h - 1); c.restore(); }
+    }
+    mono('0 ms', RX, 535, { alpha: sa, size: 15 }); mono('8 ms', RX + RW / 2, 535, { alpha: sa, size: 15, align: 'center' });
+    mono('16.7 ms · one frame at 60 Hz', RX + RW, 535, { alpha: sa, size: 15, align: 'right' });
+  }
+  const bp = seg(t, 11.0, 11.12);
+  txt('<1.8 ms', RX - 4, 690, { font: F.disp, weight: 800, size: 124, color: C.sig, ls: -5, alpha: bp });
+  typeMono('per prediction · room for eight more', RX, 745, seg(t, 11.3, 11.7));
+  note('Data never leaves the phone.', RX, 870, seg(t, 11.85, 12.2), 46);
+  c.restore();
+}
+
+function sTitle(t) {
+  const u = t - 12.8;
+  const win = eExpo(seg(u, 0, 0.42));
+  c.save(); c.translate(2400 * (1 - win), 0);
+  typeMono('Case study 01 / 15 · Android · on-device ML', 960, 330, seg(u, 0.25, 0.7), { align: 'center' });
+  const word = 'StressSense', size = 196;
+  const font = `800 ${size}px ${F.disp}`;
+  c.save(); c.font = font; c.letterSpacing = '-6px';
+  const tw = c.measureText(word).width, x0 = 960 - tw / 2;
+  for (let i = 0; i < word.length; i++) {
+    const dt = u - 0.1 - i * 0.035, p = spring(dt, 13, 8);
+    if (dt <= 0) continue;
+    const x = x0 + c.measureText(word.slice(0, i)).width;
+    c.save(); c.globalAlpha = cl(dt * 8);
+    c.translate(x, 540 + (1 - p) * 140); c.rotate((1 - p) * 0.25);
+    c.fillStyle = i >= 6 ? C.sig : C.ink; c.textBaseline = 'alphabetic';
+    c.fillText(word[i], 0, 0);
+    c.restore();
+  }
+  c.restore();
+  const ul = eExpo(seg(t, 13.25, 13.65));
+  c.fillStyle = C.sig; c.fillRect(x0, 580, (tw + 8) * ul, 9);
+  serif('in 5.77 KB', x0 + tw, 668, { size: 72, align: 'right', alpha: eOut(seg(t, 13.35, 13.7)), color: C.ink2 });
+  // tags
+  const tags = ['Kotlin · Jetpack Compose', 'TensorFlow Lite', 'Distillation · INT8'];
+  c.save(); c.font = `500 17px ${F.mono}`; c.letterSpacing = '2.4px';
+  const pads = tags.map(s => c.measureText(s.toUpperCase()).width + 36);
+  c.restore();
+  const totalW = pads.reduce((a, b) => a + b, 0) + 14 * (tags.length - 1);
+  let tx = 960 - totalW / 2;
+  tags.forEach((s, i) => {
+    const p = back(seg(t, TL.ticks[17 + i], TL.ticks[17 + i] + 0.25));
+    if (p > 0) {
+      c.save(); c.globalAlpha = cl(p); c.translate(tx + pads[i] / 2, 760); c.scale(p, p);
+      c.strokeStyle = C.rule; c.lineWidth = 1.5; c.strokeRect(-pads[i] / 2, -24, pads[i], 46);
+      c.restore();
+      mono(s, tx + pads[i] / 2, 765, { align: 'center', size: 17, color: C.ink, alpha: cl(p) });
+    }
+    tx += pads[i] + 14;
+  });
+  typeMono('Gaurang Singh — designed, trained & shipped solo', 960, 850, seg(t, 14.15, 14.5), { align: 'center', color: C.ink2 });
+  c.restore();
+  // calm pulse along the bottom
+  trace(ecg, 0, 1820 * win, 1820 * win, 930, 40, 420, t, { alpha: 0.7 * win, col: C.ink2, lw: 1.8 });
+}
+
+const SCENES = [
+  [0, 2.25, sPulse], [2.2, 4.75, sSignals], [4.7, 7.3, sTeacher], [7.3, 10.25, sDistil], [10.2, 12.8, sDevice], [12.8, 15, sTitle],
+];
+
+/* ---------- film layer ---------- */
+const GRAIN = [];
+{
+  let s = 1;
+  const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  for (let k = 0; k < 6; k++) {
+    const g = document.createElement('canvas'); g.width = g.height = 256;
+    const gx = g.getContext('2d'), id = gx.createImageData(256, 256);
+    for (let i = 0; i < id.data.length; i += 4) { const v = rnd() * 255; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 255; }
+    gx.putImageData(id, 0, 0); GRAIN.push(g);
+  }
+}
+const VIG = (() => { const g = X.createRadialGradient(960, 540, 380, 960, 540, 1150); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.62)'); return g; })();
+const letterbox = t => t < 0.75 ? lerp(H / 2, 72, eExpo(seg(t, 0.02, 0.75))) : t > 14.5 ? lerp(72, H / 2, eInOut(seg(t, 14.5, 14.93))) : 72;
+
+function grid(t) {
+  c.fillStyle = C.field; c.fillRect(0, 0, W, H);
+  const base = -t * 14, base2 = -t * 6;
+  const ox = ((base % 60) + 60) % 60, oy = ((base2 % 60) + 60) % 60;
+  c.save(); c.strokeStyle = C.rule; c.globalAlpha = 0.45; c.lineWidth = 1; c.beginPath();
+  for (let x = ox; x < W; x += 60) { c.moveTo(Math.round(x) + 0.5, 0); c.lineTo(Math.round(x) + 0.5, H); }
+  for (let y = oy; y < H; y += 60) { c.moveTo(0, Math.round(y) + 0.5); c.lineTo(W, Math.round(y) + 0.5); }
+  c.stroke();
+  const ox3 = ((base % 300) + 300) % 300, oy3 = ((base2 % 300) + 300) % 300;
+  c.fillStyle = C.ink2; c.globalAlpha = 0.5;
+  for (let x = ox3; x < W; x += 300) for (let y = oy3; y < H; y += 300) { c.fillRect(Math.round(x) - 7, Math.round(y), 15, 1); c.fillRect(Math.round(x), Math.round(y) - 7, 1, 15); }
+  c.restore();
+}
+
+function hud(t) {
+  c = X;
+  const lb = letterbox(t);
+  X.fillStyle = '#000'; X.fillRect(0, 0, W, Math.ceil(lb)); X.fillRect(0, H - Math.ceil(lb), W, Math.ceil(lb));
+  const a = seg(t, 0.45, 0.9) * (1 - seg(t, 14.45, 14.6));
+  if (a > 0) {
+    const ty = lb / 2 + 7, by = H - lb / 2 + 7;
+    const sc = TL.scenes.find(s => t >= s.a && t < s.b) || TL.scenes[TL.scenes.length - 1];
+    mono('Sheet 02 · StressSense · motion reel', 72, ty, { alpha: a, size: 16 });
+    mono(sc.n + ' / ' + sc.label, 960, ty, { alpha: a, size: 16, align: 'center', color: C.ink });
+    const f = Math.floor(t * 30), tc = `00:00:${String(Math.floor(t)).padStart(2, '0')}:${String(f % 30).padStart(2, '0')}`;
+    mono('TC ' + tc, 1848, ty, { alpha: a, size: 16, align: 'right', color: C.ink });
+    if (Math.floor(t * 2) % 2 === 0) { X.save(); X.globalAlpha = a; X.fillStyle = C.sig; X.beginPath(); X.arc(1560, ty - 6, 6, 0, TAU); X.fill(); X.restore(); }
+    mono('rec', 1575, ty, { alpha: a, size: 16, color: C.sig });
+    // progress rail
+    const r0 = 72, r1 = 1480;
+    X.save(); X.globalAlpha = a; X.fillStyle = '#2a2a2d'; X.fillRect(r0, by - 6, r1 - r0, 1);
+    for (const s of TL.scenes) { const x = lerp(r0, r1, s.a / TL.DUR); X.fillStyle = C.ink2; X.fillRect(x, by - 12, 1, 12); }
+    X.fillStyle = C.sig; X.fillRect(r0, by - 7, (r1 - r0) * t / TL.DUR, 3);
+    X.restore();
+    const hp = pulse(t, 9);
+    X.save(); X.globalAlpha = a; X.fillStyle = C.sig; X.translate(1640, by - 6); X.scale(1 + hp * 0.6, 1 + hp * 0.6); X.fillRect(-5, -5, 10, 10); X.restore();
+    mono(Math.round(TL.bpm(t)) + ' bpm', 1848, by, { alpha: a, size: 16, align: 'right', color: C.ink });
+  }
+  // left ruler, as on the case-study sheet
+  const ra = seg(t, 0.4, 0.8) * (1 - seg(t, 14.45, 14.6));
+  if (ra > 0) {
+    X.save(); X.globalAlpha = ra;
+    X.fillStyle = C.rule; X.fillRect(44, lb, 1, H - 2 * lb);
+    for (let y = lb; y < H - lb; y += 10) { const big = Math.round((y - lb) / 10) % 5 === 0; X.fillStyle = big ? C.ink2 : C.rule; X.fillRect(big ? 28 : 36, Math.round(y), big ? 16 : 8, 1); }
+    X.fillStyle = C.sig; X.fillRect(20, lb + (H - 2 * lb) * t / TL.DUR, 25, 2);
+    X.restore();
+  }
+  // a single red dot opens and closes the reel
+  const d0 = (1 - seg(t, 0.3, 0.5)), d1 = seg(t, 14.75, 14.85);
+  const dot = Math.max(t < 0.5 ? d0 : 0, d1);
+  if (dot > 0) { X.save(); X.globalAlpha = dot; X.fillStyle = C.sig; X.shadowColor = C.sig; X.shadowBlur = 30; X.beginPath(); X.arc(960, 540, 7 + pulse(t, 6) * 4, 0, TAU); X.fill(); X.restore(); }
+  c = BC;
+}
+
+function renderAt(t) {
+  t = cl(t, 0, TL.DUR - 1e-4);
+  c = BC;
+  grid(t);
+  const sh = hitAmt(t, 10);
+  c.save();
+  c.translate(noise1(t * 40) * 18 * sh, noise1(t * 40 + 50) * 12 * sh);
+  for (const [a, b, fn] of SCENES) if (t >= a && t < b) { c.save(); fn(t); c.restore(); }
+  c.restore();
+  // composite with glitch slices on impacts
+  const g = hitAmt(t, 15);
+  X.globalAlpha = 1; X.globalCompositeOperation = 'source-over';
+  X.drawImage(B, 0, 0);
+  if (g > 0.04) {
+    const fr = Math.floor(t * 60), bands = 18, bh = H / bands;
+    for (let b = 0; b < bands; b++) {
+      if (hash(b * 3.1 + fr * 0.71) < 0.5) continue;
+      const dx = (hash(b * 13.7 + fr * 0.37) - 0.5) * 220 * g;
+      X.drawImage(B, 0, b * bh, W, bh, dx, b * bh, W, bh);
+    }
+    X.save(); X.globalCompositeOperation = 'screen'; X.globalAlpha = g * 0.5;
+    X.drawImage(B, 14 * g, 0); X.globalAlpha = g * 0.16; X.fillStyle = C.sig; X.fillRect(0, 0, W, H); X.restore();
+  }
+  const fl = hitAmt(t, 40);
+  if (fl > 0.05) { X.save(); X.globalAlpha = fl * 0.22; X.fillStyle = C.ink; X.fillRect(0, 0, W, H); X.restore(); }
+  X.fillStyle = VIG; X.fillRect(0, 0, W, H);
+  X.save(); X.globalAlpha = 0.07; X.globalCompositeOperation = 'overlay';
+  X.fillStyle = X.createPattern(GRAIN[Math.floor(t * 30) % GRAIN.length], 'repeat'); X.fillRect(0, 0, W, H); X.restore();
+  X.save(); X.globalAlpha = 0.035; X.fillStyle = X.createPattern(GRAIN[(Math.floor(t * 30) + 3) % GRAIN.length], 'repeat'); X.fillRect(0, 0, W, H); X.restore();
+  hud(t);
+}
+
+window.renderAt = renderAt;
+const fontsReady = Promise.all([
+  `800 100px ${F.disp}`, `500 100px ${F.disp}`, `500 20px ${F.mono}`, `400 20px ${F.mono}`, `italic 40px ${F.serif}`, `500 20px ${F.body}`,
+].map(f => document.fonts.load(f))).then(() => document.fonts.ready);
+fontsReady.then(() => {
+  window.__ready = true;
+  if (RENDER) { renderAt(0); return; }
+  const qs = /t=([\d.]+)/.exec(location.search);
+  if (qs) { renderAt(+qs[1]); return; }
+  const t0 = performance.now();
+  (function loop(now) { renderAt(((now - t0) / 1000) % TL.DUR); requestAnimationFrame(loop); })(t0);
+});
+})();
+</script>
+</body>
+</html>
